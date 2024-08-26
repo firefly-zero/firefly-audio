@@ -1,6 +1,7 @@
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
+use micromath::F32Ext;
 
 /// Do nothing: only mix the children and pass the mix forward with no changes.
 pub struct Mix {}
@@ -126,6 +127,38 @@ impl Processor for Delay {
     }
 }
 
+pub struct Pan {
+    left_weight: f32,
+    right_weight: f32,
+}
+
+impl Pan {
+    pub fn new(v: f32) -> Self {
+        let (left_weight, right_weight) = pan_weights(v);
+        Self {
+            left_weight,
+            right_weight,
+        }
+    }
+}
+
+#[inline]
+fn pan_weights(v: f32) -> (f32, f32) {
+    let v = v.clamp(-1., 1.);
+    let angle = (v + 1.) * core::f32::consts::FRAC_PI_4;
+    let (sin, cos) = F32Ext::sin_cos(angle);
+    (cos, sin)
+}
+
+impl Processor for Pan {
+    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
+        let left = f.left * self.left_weight;
+        let right = f.right.map(|s| s * self.right_weight);
+        Some(Frame { left, right })
+    }
+}
+
+/// Generate sine wave oscillator.
 pub struct Sine {
     freq: f32,
     phase: f32,

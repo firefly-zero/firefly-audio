@@ -84,5 +84,8 @@ impl Node {
 
     pub fn reset(&mut self) {
         self.behavior.reset();
+        for node in self.children.iter_mut() {
+            node.reset();
+        }
     }
 }
