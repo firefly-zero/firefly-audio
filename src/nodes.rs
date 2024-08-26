@@ -1,4 +1,5 @@
 use crate::*;
+use alloc::vec;
 use alloc::vec::Vec;
 
 /// Do nothing: only mix the children and pass the mix forward with no changes.
@@ -78,13 +79,13 @@ impl Behavior for Concat {
 
 /// Delay the input only for one tick.
 pub struct OneDelay {
-    prev: Option<Frame>,
+    prev: Frame,
 }
 
 impl OneDelay {
     pub fn new() -> Self {
         Self {
-            prev: Some(Frame::zero()),
+            prev: Frame::zero(),
         }
     }
 }
@@ -92,7 +93,33 @@ impl OneDelay {
 impl Behavior for OneDelay {
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
         let res = self.prev.clone();
-        self.prev = Some(f);
-        res
+        self.prev = f;
+        Some(res)
+    }
+}
+
+/// Delay the input for the given number of samples.
+pub struct Delay {
+    buf: Vec<Frame>,
+    i: usize,
+}
+
+impl Delay {
+    pub fn new(size: usize) -> Self {
+        Self {
+            buf: vec![Frame::zero(); size],
+            i: 0,
+        }
+    }
+}
+
+impl Behavior for Delay {
+    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
+        self.buf[self.i] = f;
+        self.i = self.i.wrapping_add(1);
+        if self.i >= self.buf.len() {
+            self.i = 0;
+        }
+        Some(self.buf[self.i].clone())
     }
 }
