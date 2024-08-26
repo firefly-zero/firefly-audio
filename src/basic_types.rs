@@ -1,6 +1,6 @@
 use core::ops::{Add, Div};
 
-pub type Sample = f32;
+pub type Sample = wide::f32x8;
 pub type Values = alloc::vec::Vec<f32>;
 
 #[derive(Clone)]
@@ -12,7 +12,7 @@ pub struct Frame {
 impl Frame {
     pub(crate) fn zero() -> Self {
         Self {
-            left: 0.0,
+            left: wide::f32x8::ZERO,
             right: None,
         }
     }

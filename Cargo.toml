@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 firefly-device = { path = "../firefly-device" }
+wide = { version = "0.7.28", default-features = false }
