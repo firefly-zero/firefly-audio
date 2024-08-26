@@ -75,3 +75,24 @@ impl Behavior for Concat {
         None
     }
 }
+
+/// Delay the input only for one tick.
+pub struct OneDelay {
+    prev: Option<Frame>,
+}
+
+impl OneDelay {
+    pub fn new() -> Self {
+        Self {
+            prev: Some(Frame::zero()),
+        }
+    }
+}
+
+impl Behavior for OneDelay {
+    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
+        let res = self.prev.clone();
+        self.prev = Some(f);
+        res
+    }
+}

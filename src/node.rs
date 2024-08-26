@@ -15,10 +15,11 @@ pub trait Behavior {
         for node in cn.iter_mut() {
             sum = sum + &node.next_frame()?;
         }
-        Some(sum / cn.len() as f32)
+        let f = sum / cn.len() as f32;
+        self.process_frame(f)
     }
 
-    fn process_frame(&mut self, f: &Frame) -> Option<Frame> {
+    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
         let left = self.process_sample(f.left)?;
         let right = match f.right {
             Some(right) => {
@@ -44,15 +45,20 @@ pub struct Node {
 
 impl Node {
     pub fn add(&mut self, parent: u32, b: Box<dyn Behavior>) -> bool {
+        const MAX_NODES: u32 = 4;
         let Some(node) = self.get_node(parent) else {
             return false;
         };
-        if node.children.len() >= 4 {
+        if node.children.len() as u32 >= MAX_NODES {
             return false;
         }
+        let range_size = (node.range.end - node.range.start) / MAX_NODES;
+        let child_id = node.range.start + 1 + range_size * node.children.len() as u32;
+        let range_start = child_id + 1;
+        let range_end = range_start + range_size;
         let child = Self {
-            id: todo!(),
-            range: todo!(),
+            id: child_id,
+            range: range_start..range_end,
             children: Vec::new(),
             behavior: b,
         };

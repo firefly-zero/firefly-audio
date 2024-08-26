@@ -3,6 +3,7 @@ use core::ops::{Add, Div};
 pub type Sample = f32;
 pub type Values = alloc::vec::Vec<f32>;
 
+#[derive(Clone)]
 pub struct Frame {
     pub left: Sample,
     pub right: Option<Sample>,
@@ -28,15 +29,6 @@ impl Frame {
             left: l,
             right: Some(r),
         }
-    }
-
-    pub(crate) fn map<F>(&self, mut f: F) -> Frame
-    where
-        F: FnMut(Sample) -> Sample,
-    {
-        let left = f(self.left);
-        let right = self.right.map(f);
-        Self { left, right }
     }
 }
 
