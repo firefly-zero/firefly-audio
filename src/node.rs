@@ -10,20 +10,28 @@ pub trait Behavior {
 
     // TODO: seek
 
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Frame {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         let mut sum = Frame::zero();
         for node in cn.iter_mut() {
-            sum = sum + &node.next_frame()
+            sum = sum + &node.next_frame()?;
         }
-        sum / cn.len() as f32
+        Some(sum / cn.len() as f32)
     }
 
-    fn process_frame(&mut self, f: &Frame) -> Frame {
-        f.map(|s| self.process_sample(s))
+    fn process_frame(&mut self, f: &Frame) -> Option<Frame> {
+        let left = self.process_sample(f.left)?;
+        let right = match f.right {
+            Some(right) => {
+                let right = self.process_sample(right)?;
+                Some(right)
+            }
+            None => None,
+        };
+        Some(Frame { left, right })
     }
 
-    fn process_sample(&mut self, s: Sample) -> Sample {
-        s
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        Some(s)
     }
 }
 
@@ -64,33 +72,11 @@ impl Node {
         None
     }
 
-    pub fn next_frame(&mut self) -> Frame {
+    pub fn next_frame(&mut self) -> Option<Frame> {
         self.behavior.process_children(&mut self.children)
     }
-}
 
-pub struct Pass {}
-
-impl Pass {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl Behavior for Pass {}
-
-pub struct Gain {
-    lvl: f32,
-}
-
-impl Gain {
-    pub fn new(lvl: f32) -> Self {
-        Self { lvl }
-    }
-}
-
-impl Behavior for Gain {
-    fn process_sample(&mut self, s: Sample) -> Sample {
-        s * self.lvl
+    pub fn reset(&mut self) {
+        self.behavior.reset();
     }
 }
