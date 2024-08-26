@@ -11,7 +11,7 @@ impl Mix {
     }
 }
 
-impl Behavior for Mix {}
+impl Processor for Mix {}
 
 /// Set the gain level for every sample.
 pub struct Gain {
@@ -24,7 +24,7 @@ impl Gain {
     }
 }
 
-impl Behavior for Gain {
+impl Processor for Gain {
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         Some(s * self.lvl)
     }
@@ -39,7 +39,7 @@ impl Loop {
     }
 }
 
-impl Behavior for Loop {
+impl Processor for Loop {
     fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         let mut sum = Frame::zero();
         for node in cn.iter_mut() {
@@ -66,7 +66,7 @@ impl Concat {
     }
 }
 
-impl Behavior for Concat {
+impl Processor for Concat {
     fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         for node in cn {
             if let Some(f) = node.next_frame() {
@@ -90,7 +90,7 @@ impl OneDelay {
     }
 }
 
-impl Behavior for OneDelay {
+impl Processor for OneDelay {
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
         let res = self.prev.clone();
         self.prev = f;
@@ -113,7 +113,7 @@ impl Delay {
     }
 }
 
-impl Behavior for Delay {
+impl Processor for Delay {
     // TODO: process_children shouldn't stop when the source ends.
     // We should exhaust the buffer first.
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
@@ -142,7 +142,7 @@ impl Sine {
     }
 }
 
-impl Behavior for Sine {
+impl Processor for Sine {
     fn reset(&mut self) {
         self.phase = self.initial_phase;
     }

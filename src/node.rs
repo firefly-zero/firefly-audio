@@ -3,7 +3,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::ops::Range;
 
-pub trait Behavior {
+pub trait Processor {
     fn reset(&mut self) {
         // do nothing
     }
@@ -40,11 +40,11 @@ pub struct Node {
     id: u32,
     range: Range<u32>,
     children: Vec<Node>,
-    behavior: Box<dyn Behavior>,
+    behavior: Box<dyn Processor>,
 }
 
 impl Node {
-    pub fn add(&mut self, parent: u32, b: Box<dyn Behavior>) -> bool {
+    pub fn add(&mut self, parent: u32, b: Box<dyn Processor>) -> bool {
         const MAX_NODES: u32 = 4;
         let Some(node) = self.get_node(parent) else {
             return false;
