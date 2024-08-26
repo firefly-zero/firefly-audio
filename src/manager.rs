@@ -18,10 +18,6 @@ impl<'a> Context<'a> {
     fn get_value(&self, i: usize) -> Option<f32> {
         self.values.get(i).copied()
     }
-
-    fn get_source(&self, i: usize) -> Option<Frame> {
-        self.sources.get(i).copied()
-    }
 }
 
 pub struct AudioManager {}

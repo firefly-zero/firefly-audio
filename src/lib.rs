@@ -3,11 +3,11 @@
 extern crate alloc;
 
 mod basic_types;
-mod effects;
 mod manager;
+mod node;
 mod sources;
 
 pub use basic_types::*;
-pub use effects::*;
 pub use manager::*;
+pub use node::*;
 pub use sources::*;
