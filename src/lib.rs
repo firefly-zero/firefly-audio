@@ -2,10 +2,12 @@
 #![allow(clippy::new_without_default)]
 extern crate alloc;
 
-mod channels;
-mod filters;
+mod basic_types;
+mod effects;
+mod manager;
 mod sources;
 
-pub use channels::*;
-pub use filters::*;
+pub use basic_types::*;
+pub use effects::*;
+pub use manager::*;
 pub use sources::*;

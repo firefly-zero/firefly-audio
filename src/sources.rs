@@ -1,26 +1,9 @@
+use crate::basic_types::*;
 use core::marker::PhantomData;
 use firefly_device::*;
 
-type Amp = f32;
-
-pub trait MonoSource {
-    fn next_mono(&mut self) -> Option<Amp>;
-}
-
-pub trait StereoSource {
-    fn next_stereo(&mut self) -> Option<(Amp, Amp)>;
-
-    fn next_mono(&mut self) -> Option<Amp> {
-        let (a, b) = self.next_stereo()?;
-        Some((a + b) / 2.)
-    }
-}
-
-impl<T: MonoSource> StereoSource for T {
-    fn next_stereo(&mut self) -> Option<(Amp, Amp)> {
-        let a = self.next_mono()?;
-        Some((a, a))
-    }
+pub trait Source {
+    fn advance(&mut self) -> Option<Frame>;
 }
 
 pub struct Mono {}
@@ -41,22 +24,22 @@ impl<C> Wav<C> {
     }
 }
 
-impl MonoSource for Wav<Mono> {
-    fn next_mono(&mut self) -> Option<Amp> {
+impl Source for Wav<Mono> {
+    fn advance(&mut self) -> Option<Frame> {
         todo!()
     }
 }
 
-impl StereoSource for Wav<Stereo> {
-    fn next_stereo(&mut self) -> Option<(Amp, Amp)> {
+impl Source for Wav<Stereo> {
+    fn advance(&mut self) -> Option<Frame> {
         todo!()
     }
 }
 
 pub struct Sine {}
 
-impl MonoSource for Sine {
-    fn next_mono(&mut self) -> Option<Amp> {
+impl Source for Sine {
+    fn advance(&mut self) -> Option<Frame> {
         todo!()
     }
 }
