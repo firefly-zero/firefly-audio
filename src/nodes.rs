@@ -114,6 +114,8 @@ impl Delay {
 }
 
 impl Behavior for Delay {
+    // TODO: process_children shouldn't stop when the source ends.
+    // We should exhaust the buffer first.
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
         self.buf[self.i] = f;
         self.i = self.i.wrapping_add(1);
@@ -121,5 +123,40 @@ impl Behavior for Delay {
             self.i = 0;
         }
         Some(self.buf[self.i].clone())
+    }
+}
+
+pub struct Sine {
+    freq: f32,
+    phase: f32,
+    initial_phase: f32,
+}
+
+impl Sine {
+    pub fn new(phase: f32, freq: f32) -> Self {
+        Self {
+            freq,
+            phase,
+            initial_phase: phase,
+        }
+    }
+}
+
+impl Behavior for Sine {
+    fn reset(&mut self) {
+        self.phase = self.initial_phase;
+    }
+
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut element = [0f32; 8];
+        for sample in &mut element {
+            *sample = self.phase;
+            self.phase += self.freq * SAMPLE_DURATION;
+            self.phase -= self.phase.floor();
+        }
+        let element = Sample::new(element);
+        let s = element * Sample::TAU;
+        let s = s.sin();
+        Some(Frame::mono(s))
     }
 }

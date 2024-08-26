@@ -35,11 +35,3 @@ impl Source for Wav<Stereo> {
         todo!()
     }
 }
-
-pub struct Sine {}
-
-impl Source for Sine {
-    fn advance(&mut self) -> Option<Frame> {
-        todo!()
-    }
-}
