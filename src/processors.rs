@@ -247,6 +247,92 @@ impl Processor for TrackPosition {
     }
 }
 
+/// Low-pass/high-pass filter.
+#[derive(Default)]
+pub struct LowHighPass {
+    low: bool,
+    freq: u32,
+    q: f32,
+
+    x_n1: Sample,
+    x_n2: Sample,
+    y_n1: Sample,
+    y_n2: Sample,
+
+    b0: f32,
+    b1: f32,
+    b2: f32,
+    a1: f32,
+    a2: f32,
+}
+
+impl LowHighPass {
+    pub fn new(low: bool, freq: u32, q: f32) -> Self {
+        let mut res = Self {
+            low,
+            freq,
+            q,
+            ..Default::default()
+        };
+        res.update_coefs();
+        res
+    }
+
+    fn update_coefs(&mut self) {
+        let w0 = core::f32::consts::TAU * self.freq as f32 / SAMPLE_RATE as f32;
+
+        if self.low {
+            let alpha = w0.sin() / (2. * self.q);
+            let b1 = 1. - w0.cos();
+            let b0 = b1 / 2.;
+            let b2 = b0;
+            let a0 = 1. + alpha;
+            let a1 = -2. * w0.cos();
+            let a2 = 1. - alpha;
+
+            self.b0 = b0 / a0;
+            self.b1 = b1 / a0;
+            self.b2 = b2 / a0;
+            self.a1 = a1 / a0;
+            self.a2 = a2 / a0;
+        } else {
+            let cos_w0 = w0.cos();
+            let alpha = w0.sin() / (2. * self.q);
+
+            let b0 = (1. + cos_w0) / 2.;
+            let b1 = -1. - cos_w0;
+            let b2 = b0;
+            let a0 = 1. + alpha;
+            let a1 = -2. * cos_w0;
+            let a2 = 1. - alpha;
+
+            self.b0 = b0 / a0;
+            self.b1 = b1 / a0;
+            self.b2 = b2 / a0;
+            self.a1 = a1 / a0;
+            self.a2 = a2 / a0;
+        }
+    }
+}
+
+impl Processor for LowHighPass {
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        let bx0 = self.b0 * s;
+        let bx1 = self.b1 * self.x_n1;
+        let bx2 = self.b2 * self.x_n2;
+        let ay1 = self.a1 * self.y_n1;
+        let ay2 = self.a2 * self.y_n2;
+        let result = bx0 + bx1 + bx2 - ay1 - ay2;
+
+        self.y_n2 = self.y_n1;
+        self.x_n2 = self.x_n1;
+        self.y_n1 = result;
+        self.x_n1 = s;
+
+        Some(result)
+    }
+}
+
 /// A sound source that is always stopped.
 pub struct Empty {}
 
