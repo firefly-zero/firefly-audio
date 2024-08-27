@@ -40,7 +40,7 @@ impl Manager {
         debug_assert_eq!(root.children.len(), 0);
         for _ in 0..3 {
             let added = root.add(Box::new(Empty::new()));
-            debug_assert!(added);
+            debug_assert!(added.is_some());
         }
         debug_assert_eq!(root.children.len(), 3);
         debug_assert!(root.children[0].id < root.children[1].id);

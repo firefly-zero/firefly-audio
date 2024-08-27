@@ -411,7 +411,7 @@ pub struct Sine {
 }
 
 impl Sine {
-    pub fn new(phase: f32, freq: f32) -> Self {
+    pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             freq,
             phase,

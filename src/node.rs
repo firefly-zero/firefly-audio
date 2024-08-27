@@ -53,10 +53,10 @@ impl Node {
         }
     }
 
-    pub fn add(&mut self, b: Box<dyn Processor>) -> bool {
+    pub fn add(&mut self, b: Box<dyn Processor>) -> Option<u32> {
         const MAX_NODES: u32 = 4;
         if self.children.len() as u32 >= MAX_NODES {
-            return false;
+            return None;
         }
         let range_size = (self.range.end - self.range.start) / MAX_NODES;
         let child_id = self.range.start + 1 + range_size * self.children.len() as u32;
@@ -71,7 +71,7 @@ impl Node {
             behavior: b,
         };
         self.children.push(child);
-        true
+        Some(child_id)
     }
 
     pub fn get_node(&mut self, id: u32) -> Option<&mut Self> {
