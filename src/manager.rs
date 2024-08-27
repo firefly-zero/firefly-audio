@@ -16,6 +16,14 @@ impl Sink {
             _ => None,
         }
     }
+
+    pub fn id(&self) -> u32 {
+        match self {
+            Sink::Default => DEFAULT_SINK,
+            Sink::Headphones => HEADPHONES_SINK,
+            Sink::Speakers => SPEAKERS_SINK,
+        }
+    }
 }
 
 const DEFAULT_SINK: u32 = 1;
