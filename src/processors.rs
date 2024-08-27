@@ -158,6 +158,38 @@ impl Processor for Pan {
     }
 }
 
+/// Fade in the input for the given number of samples.
+pub struct FadeIn {
+    start_gain: f32,
+    total: f32,
+    elapsed: f32,
+}
+
+impl FadeIn {
+    pub fn new(start_gain: f32, duration: f32) -> Self {
+        Self {
+            start_gain,
+            total: duration,
+            elapsed: 0.,
+        }
+    }
+}
+
+impl Processor for FadeIn {
+    fn reset(&mut self) {
+        self.elapsed = 0.;
+    }
+
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        if self.elapsed >= self.total {
+            return Some(s);
+        }
+        let gain = self.start_gain + (1. - self.elapsed / self.total);
+        self.elapsed += 1.;
+        Some(s * gain)
+    }
+}
+
 /// Generate sine wave oscillator.
 pub struct Sine {
     freq: f32,
