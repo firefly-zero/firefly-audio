@@ -247,6 +247,36 @@ impl Processor for TrackPosition {
     }
 }
 
+/// A sound source that is always stopped.
+pub struct Empty {}
+
+impl Empty {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for Empty {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+        None
+    }
+}
+
+/// A sound source that produces zeros. Forever.
+pub struct Zero {}
+
+impl Zero {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for Zero {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+        Some(Frame::zero())
+    }
+}
+
 /// Generate sine wave oscillator.
 pub struct Sine {
     freq: f32,
