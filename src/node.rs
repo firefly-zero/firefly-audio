@@ -1,4 +1,4 @@
-use crate::basic_types::*;
+use crate::*;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::ops::Range;
@@ -39,22 +39,28 @@ pub trait Processor {
 pub struct Node {
     id: u32,
     range: Range<u32>,
-    children: Vec<Node>,
+    pub(crate) children: Vec<Node>,
     behavior: Box<dyn Processor>,
 }
 
 impl Node {
-    pub fn add(&mut self, parent: u32, b: Box<dyn Processor>) -> bool {
+    pub fn new_root() -> Self {
+        Self {
+            id: 0,
+            range: 0..u32::MAX,
+            children: Vec::new(),
+            behavior: Box::new(Empty::new()),
+        }
+    }
+
+    pub fn add(&mut self, b: Box<dyn Processor>) -> bool {
         const MAX_NODES: u32 = 4;
-        let Some(node) = self.get_node(parent) else {
-            return false;
-        };
-        if node.children.len() as u32 >= MAX_NODES {
+        if self.children.len() as u32 >= MAX_NODES {
             return false;
         }
-        let range_size = (node.range.end - node.range.start) / MAX_NODES;
-        let child_id = node.range.start + 1 + range_size * node.children.len() as u32;
-        let range_start = child_id + 1;
+        let range_size = (self.range.end - self.range.start) / MAX_NODES;
+        let child_id = self.range.start + 1 + range_size * self.children.len() as u32;
+        let range_start = child_id;
         let range_end = range_start + range_size;
         let child = Self {
             id: child_id,
@@ -62,11 +68,11 @@ impl Node {
             children: Vec::new(),
             behavior: b,
         };
-        node.children.push(child);
+        self.children.push(child);
         true
     }
 
-    fn get_node(&mut self, id: u32) -> Option<&mut Self> {
+    pub fn get_node(&mut self, id: u32) -> Option<&mut Self> {
         if self.id == id {
             return Some(self);
         }
