@@ -280,14 +280,15 @@ impl LowHighPass {
 
     fn update_coefs(&mut self) {
         let w0 = core::f32::consts::TAU * self.freq as f32 / SAMPLE_RATE as f32;
+        let cos_w0 = w0.cos();
+        let alpha = w0.sin() / (2. * self.q);
 
         if self.low {
-            let alpha = w0.sin() / (2. * self.q);
-            let b1 = 1. - w0.cos();
+            let b1 = 1. - cos_w0;
             let b0 = b1 / 2.;
             let b2 = b0;
             let a0 = 1. + alpha;
-            let a1 = -2. * w0.cos();
+            let a1 = -2. * cos_w0;
             let a2 = 1. - alpha;
 
             self.b0 = b0 / a0;
@@ -296,9 +297,6 @@ impl LowHighPass {
             self.a1 = a1 / a0;
             self.a2 = a2 / a0;
         } else {
-            let cos_w0 = w0.cos();
-            let alpha = w0.sin() / (2. * self.q);
-
             let b0 = (1. + cos_w0) / 2.;
             let b1 = -1. - cos_w0;
             let b2 = b0;
@@ -330,6 +328,48 @@ impl Processor for LowHighPass {
         self.x_n1 = s;
 
         Some(result)
+    }
+}
+
+/// Take the left (and discard the right) channel from a stereo source.
+pub struct TakeLeft {}
+
+impl TakeLeft {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for TakeLeft {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut sum = Sample::ZERO;
+        for node in cn.iter_mut() {
+            sum += &node.next_frame()?.left;
+        }
+        let s = sum / cn.len() as f32;
+        Some(Frame::mono(s))
+    }
+}
+
+/// Take the right (and discard the left) channel from a stereo source.
+pub struct TakeRight {}
+
+impl TakeRight {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for TakeRight {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut sum = Sample::ZERO;
+        for node in cn.iter_mut() {
+            if let Some(right) = &node.next_frame()?.right {
+                sum += right;
+            }
+        }
+        let s = sum / cn.len() as f32;
+        Some(Frame::mono(s))
     }
 }
 
