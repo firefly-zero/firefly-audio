@@ -2,7 +2,7 @@ use crate::*;
 use alloc::boxed::Box;
 
 pub enum Sink {
-    Default,
+    Adaptive,
     Headphones,
     Speakers,
 }
@@ -10,7 +10,7 @@ pub enum Sink {
 impl Sink {
     pub fn from_id(id: u32) -> Option<Sink> {
         match id {
-            DEFAULT_SINK => Some(Self::Default),
+            ADAPTIVE_SINK => Some(Self::Adaptive),
             HEADPHONES_SINK => Some(Self::Headphones),
             SPEAKERS_SINK => Some(Self::Speakers),
             _ => None,
@@ -19,14 +19,14 @@ impl Sink {
 
     pub fn id(&self) -> u32 {
         match self {
-            Sink::Default => DEFAULT_SINK,
+            Sink::Adaptive => ADAPTIVE_SINK,
             Sink::Headphones => HEADPHONES_SINK,
             Sink::Speakers => SPEAKERS_SINK,
         }
     }
 }
 
-const DEFAULT_SINK: u32 = 1;
+const ADAPTIVE_SINK: u32 = 1;
 const HEADPHONES_SINK: u32 = 2u32.pow(30);
 const SPEAKERS_SINK: u32 = 2u32.pow(31) - 1;
 
@@ -59,7 +59,7 @@ impl Manager {
         let mut buf_right = buf_right;
 
         let node_idx = match sink {
-            Sink::Default => 0,
+            Sink::Adaptive => 0,
             Sink::Headphones => 1,
             Sink::Speakers => 2,
         };
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn test_sink_ids() {
         let m = Manager::new();
-        assert_eq!(m.root.children[0].id, DEFAULT_SINK);
+        assert_eq!(m.root.children[0].id, ADAPTIVE_SINK);
         assert_eq!(m.root.children[1].id, HEADPHONES_SINK);
         assert_eq!(m.root.children[2].id, SPEAKERS_SINK);
     }

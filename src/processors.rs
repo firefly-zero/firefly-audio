@@ -441,11 +441,11 @@ impl Processor for Sine {
 
 /// Generate a white noise
 pub struct Noise {
-    seed: u32,
+    seed: i32,
 }
 
 impl Noise {
-    pub fn new(seed: u32) -> Self {
+    pub fn new(seed: i32) -> Self {
         Self { seed }
     }
 }
