@@ -163,31 +163,32 @@ impl Processor for Pan {
 /// The fade-in is linear. If you need a non-linear fade-in, use modulated [`Gain`].
 pub struct FadeIn {
     start_gain: f32,
-    total: f32,
-    elapsed: f32,
+    total: Position,
+    elapsed: Position,
 }
 
 impl FadeIn {
-    pub fn new(start_gain: f32, duration: f32) -> Self {
+    pub fn new(start_gain: f32, duration: Position) -> Self {
         Self {
             start_gain,
             total: duration,
-            elapsed: 0.,
+            elapsed: 0,
         }
     }
 }
 
 impl Processor for FadeIn {
     fn reset(&mut self) {
-        self.elapsed = 0.;
+        self.elapsed = 0;
     }
 
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         if self.elapsed >= self.total {
             return Some(s);
         }
-        let gain = self.start_gain + (1. - self.elapsed / self.total);
-        self.elapsed += 1.;
+        let ratio = (self.elapsed / self.total) as f32;
+        let gain = self.start_gain + (1. - ratio);
+        self.elapsed += 1;
         Some(s * gain)
     }
 }
@@ -220,6 +221,28 @@ impl Processor for Pause {
         if self.paused {
             return Some(Sample::ZERO);
         }
+        Some(s)
+    }
+}
+
+/// Tracks the current position (elapsed time) of the audio stream.
+pub struct TrackPosition {
+    elapsed: Position,
+}
+
+impl TrackPosition {
+    pub fn new() -> Self {
+        Self { elapsed: 0 }
+    }
+}
+
+impl Processor for TrackPosition {
+    fn reset(&mut self) {
+        self.elapsed = 0;
+    }
+
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        self.elapsed += 1;
         Some(s)
     }
 }

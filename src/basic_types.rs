@@ -1,7 +1,8 @@
 use core::ops::{Add, Div};
 
-pub const SAMPLE_RATE: f32 = 44_100.0;
-pub const SAMPLE_DURATION: f32 = 1.0 / SAMPLE_RATE;
+pub type Position = u32;
+pub const SAMPLE_RATE: Position = 44_100;
+pub const SAMPLE_DURATION: f32 = 1.0 / SAMPLE_RATE as f32;
 
 pub type Sample = wide::f32x8;
 pub type Values = alloc::vec::Vec<f32>;
