@@ -37,7 +37,7 @@ pub trait Processor {
 }
 
 pub struct Node {
-    id: u32,
+    pub(crate) id: u32,
     range: Range<u32>,
     pub(crate) children: Vec<Node>,
     behavior: Box<dyn Processor>,
@@ -62,6 +62,8 @@ impl Node {
         let child_id = self.range.start + 1 + range_size * self.children.len() as u32;
         let range_start = child_id;
         let range_end = range_start + range_size;
+        debug_assert!(range_start >= self.range.start);
+        debug_assert!(range_end <= self.range.end);
         let child = Self {
             id: child_id,
             range: range_start..range_end,

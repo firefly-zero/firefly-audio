@@ -7,16 +7,36 @@ pub enum Sink {
     Speakers,
 }
 
+impl Sink {
+    pub fn from_id(id: u32) -> Option<Sink> {
+        match id {
+            DEFAULT_SINK => Some(Self::Default),
+            HEADPHONES_SINK => Some(Self::Headphones),
+            SPEAKERS_SINK => Some(Self::Speakers),
+            _ => None,
+        }
+    }
+}
+
+const DEFAULT_SINK: u32 = 1;
+const HEADPHONES_SINK: u32 = 2u32.pow(30);
+const SPEAKERS_SINK: u32 = 2u32.pow(31) - 1;
+
 pub struct Manager {
-    root: Node,
+    pub root: Node,
 }
 
 impl Manager {
     pub fn new() -> Self {
         let mut root = Node::new_root();
+        debug_assert_eq!(root.children.len(), 0);
         for _ in 0..3 {
-            root.add(Box::new(Empty::new()));
+            let added = root.add(Box::new(Empty::new()));
+            debug_assert!(added);
         }
+        debug_assert_eq!(root.children.len(), 3);
+        debug_assert!(root.children[0].id < root.children[1].id);
+        debug_assert!(root.children[1].id < root.children[2].id);
         Self { root }
     }
 
@@ -50,5 +70,18 @@ impl Manager {
                 buf_right = &mut buf_right[8..];
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sink_ids() {
+        let m = Manager::new();
+        assert_eq!(m.root.children[0].id, DEFAULT_SINK);
+        assert_eq!(m.root.children[1].id, HEADPHONES_SINK);
+        assert_eq!(m.root.children[2].id, SPEAKERS_SINK);
     }
 }
