@@ -6,8 +6,10 @@ mod basic_types;
 mod manager;
 mod node;
 mod processors;
+mod sources;
 
 pub use basic_types::*;
 pub use manager::*;
 pub use node::*;
 pub use processors::*;
+pub use sources::*;
