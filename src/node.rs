@@ -49,7 +49,7 @@ impl Node {
             id: 0,
             range: 0..u32::MAX,
             children: Vec::new(),
-            behavior: Box::new(Empty::new()),
+            behavior: Box::new(Mix::new()),
         }
     }
 
