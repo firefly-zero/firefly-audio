@@ -14,6 +14,29 @@ impl Mix {
 
 impl Processor for Mix {}
 
+/// Mix the inputs, stop everything if at least one input is stopped.
+pub struct AllForOne {}
+
+impl AllForOne {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for AllForOne {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut sum = Frame::zero();
+        if cn.is_empty() {
+            return None;
+        }
+        for node in cn.iter_mut() {
+            sum = sum + &node.next_frame()?;
+        }
+        let f = sum / cn.len() as f32;
+        self.process_frame(f)
+    }
+}
+
 /// Set the gain level for every sample.
 pub struct Gain {
     lvl: f32,

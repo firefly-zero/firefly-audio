@@ -12,10 +12,18 @@ pub trait Processor {
 
     fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         let mut sum = Frame::zero();
+        let mut count = 0;
         for node in cn.iter_mut() {
-            sum = sum + &node.next_frame()?;
+            let Some(frame) = node.next_frame() else {
+                continue;
+            };
+            sum = sum + &frame;
+            count += 1;
         }
-        let f = sum / cn.len() as f32;
+        if count == 0 {
+            return None;
+        }
+        let f = sum / count as f32;
         self.process_frame(f)
     }
 
