@@ -34,7 +34,7 @@ impl Processor for Zero {
     }
 }
 
-/// Generate sine wave oscillator.
+/// Sine wave oscillator.
 pub struct Sine {
     freq: f32,
     phase: f32,
@@ -78,6 +78,51 @@ fn floor(x: f32) -> f32 {
         res -= 1.0;
     }
     res
+}
+
+/// Square wave oscillator.
+pub struct Square {
+    freq: f32,
+    amp_low: f32,
+    amp_high: f32,
+    phase: f32,
+    initial_phase: f32,
+}
+
+impl Square {
+    pub fn new(freq: f32, amp_low: f32, amp_high: f32, phase: f32) -> Self {
+        Self {
+            freq,
+            phase,
+            initial_phase: phase,
+            amp_low,
+            amp_high,
+        }
+    }
+}
+
+impl Processor for Square {
+    fn reset(&mut self) {
+        self.phase = self.initial_phase;
+    }
+
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut samples = [0f32; 8];
+        let mut phase = self.phase;
+        for sample in &mut samples {
+            *sample = if phase - floor(phase) >= 0.5 {
+                self.amp_high
+            } else {
+                self.amp_low
+            };
+            phase += self.freq * SAMPLE_DURATION;
+            phase -= floor(phase);
+        }
+        self.phase = phase;
+
+        let s = Sample::new(samples);
+        Some(Frame::mono(s))
+    }
 }
 
 /// Generate a white noise
