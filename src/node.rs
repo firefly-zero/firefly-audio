@@ -104,4 +104,11 @@ impl Node {
             node.reset();
         }
     }
+
+    pub fn reset_all(&mut self) {
+        self.behavior.reset();
+        for node in self.children.iter_mut() {
+            node.reset_all();
+        }
+    }
 }
