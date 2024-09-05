@@ -98,13 +98,12 @@ impl Node {
         self.behavior.process_children(&mut self.children)
     }
 
+    /// Reset the current node processor to its initial state.
     pub fn reset(&mut self) {
         self.behavior.reset();
-        for node in self.children.iter_mut() {
-            node.reset();
-        }
     }
 
+    /// Reset the current node and all its children.
     pub fn reset_all(&mut self) {
         self.behavior.reset();
         for node in self.children.iter_mut() {
@@ -112,8 +111,12 @@ impl Node {
         }
     }
 
+    /// Remove all child nodes.
     pub fn clear(&mut self) {
-        self.behavior.reset();
         self.children.clear();
+    }
+
+    pub fn set_behavior(&mut self, b: Box<dyn Processor>) {
+        self.behavior = b;
     }
 }
