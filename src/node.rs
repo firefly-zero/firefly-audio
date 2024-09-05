@@ -111,4 +111,9 @@ impl Node {
             node.reset_all();
         }
     }
+
+    pub fn clear(&mut self) {
+        self.behavior.reset();
+        self.children.clear();
+    }
 }
