@@ -21,23 +21,11 @@ impl Manager {
         let mut buf = self.write_prev(buf);
 
         while buf.len() >= 16 {
-            let Some(frame) = self.root.next_frame() else {
+            let Some(mut frame) = self.root.next_frame() else {
                 break;
             };
-
-            // write left
-            let left = frame.left.as_array_ref();
-            fill_buf(buf, left);
-            buf = &mut buf[8..];
-
-            // write right
-            if let Some(right) = &frame.right {
-                let right = right.as_array_ref();
-                fill_buf(buf, right);
-            } else {
-                fill_buf(buf, left);
-            }
-            buf = &mut buf[8..];
+            let written = fill_buf(buf, &mut frame, 0);
+            buf = &mut buf[written..];
         }
 
         // If the buffer is not completely filled yet, partially write
@@ -49,10 +37,11 @@ impl Manager {
                 self.consumed = 0;
                 buf = self.write_prev(buf);
                 debug_assert!(buf.is_empty())
+            } else {
+                // fill the remainder of the buffer with zeros
+                // to avoid playing old values
+                buf.fill(0);
             }
-            // fill the remainder of the buffer with zeros
-            // to avoid playing old values
-            buf.fill(0);
         }
     }
 
@@ -62,28 +51,8 @@ impl Manager {
         let Some(frame) = &mut self.prev else {
             return buf;
         };
-        let left = frame.left.as_array_ref();
-        let mut consumed = self.consumed;
-        let mut buf = buf;
-
-        // If the left channel is not fully consumed, write it to the buffer.
-        if consumed < 8 {
-            let written = fill_buf_s(buf, &left[consumed..]);
-            consumed += written;
-            buf = &mut buf[written..];
-        }
-
-        if (8..16).contains(&consumed) {
-            let right = match frame.right {
-                Some(right) => right,
-                None => frame.left,
-            };
-            let right = right.as_array_ref();
-            let written = fill_buf_s(buf, &right[(consumed - 8)..]);
-            consumed += written;
-            buf = &mut buf[written..];
-        }
-
+        let written = fill_buf(buf, frame, self.consumed);
+        let consumed = self.consumed + written;
         if consumed >= 16 {
             debug_assert_eq!(consumed, 16);
             self.prev = None;
@@ -91,20 +60,37 @@ impl Manager {
         } else {
             self.consumed = consumed;
         }
-        &mut buf[..]
+        &mut buf[written..]
     }
 }
 
-fn fill_buf(buf: &mut [i16], src: &[f32; 8]) {
-    // TODO: use SIMD operations
-    for (t, s) in buf.iter_mut().zip(src) {
-        *t = (s * i16::MAX as f32) as i16
-    }
-}
+fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
+    // make iterators over left and right channels
+    let right = match frame.right {
+        Some(right) => right,
+        None => frame.left,
+    };
+    let mut left = frame.left.as_array_ref().iter();
+    let mut right = right.as_array_ref().iter();
 
-fn fill_buf_s(buf: &mut [i16], src: &[f32]) -> usize {
-    for (t, s) in buf.iter_mut().zip(src) {
-        *t = (s * i16::MAX as f32) as i16;
+    // skip the given number
+    let mut even = true;
+    for _ in 0..skip {
+        if even {
+            left.next()
+        } else {
+            right.next()
+        };
+        even = !even;
     }
-    buf.len().min(src.len())
+
+    let mut written = 0;
+    for tar in buf.iter_mut() {
+        let chan = if even { &mut left } else { &mut right };
+        let Some(s) = chan.next() else { break };
+        even = !even;
+        written += 1;
+        *tar = (s * i16::MAX as f32) as i16;
+    }
+    written
 }
