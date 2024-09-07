@@ -1,5 +1,4 @@
 use crate::*;
-use alloc::vec::Vec;
 use micromath::F32Ext;
 
 /// Do nothing: only mix the children and pass the mix forward with no changes.
@@ -23,7 +22,7 @@ impl AllForOne {
 }
 
 impl Processor for AllForOne {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Frame::zero();
         if cn.is_empty() {
             return None;
@@ -66,7 +65,7 @@ impl Loop {
 }
 
 impl Processor for Loop {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Frame::zero();
         for node in cn.iter_mut() {
             let f = match node.next_frame() {
@@ -93,7 +92,7 @@ impl Concat {
 }
 
 impl Processor for Concat {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         for node in cn {
             if let Some(f) = node.next_frame() {
                 return Some(f);
@@ -225,7 +224,7 @@ impl Processor for Pause {
         self.paused = false;
     }
 
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         if self.paused {
             return None;
         }
@@ -253,7 +252,7 @@ impl Processor for PauseAfter {
         self.left = self.wait;
     }
 
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         if self.left == 0 {
             return None;
         }
@@ -282,7 +281,7 @@ impl Processor for StartAfter {
         self.left = self.wait;
     }
 
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         if self.left > 0 {
             return None;
         }
@@ -414,7 +413,7 @@ impl TakeLeft {
 }
 
 impl Processor for TakeLeft {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Sample::ZERO;
         for node in cn.iter_mut() {
             sum += &node.next_frame()?.left;
@@ -434,7 +433,7 @@ impl TakeRight {
 }
 
 impl Processor for TakeRight {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Sample::ZERO;
         for node in cn.iter_mut() {
             if let Some(right) = &node.next_frame()?.right {

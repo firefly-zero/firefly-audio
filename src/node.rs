@@ -3,6 +3,8 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::ops::Range;
 
+pub type Nodes = Vec<Node>;
+
 pub trait Processor {
     fn reset(&mut self) {
         // do nothing
@@ -10,7 +12,7 @@ pub trait Processor {
 
     // TODO: seek
 
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Frame::zero();
         let mut count = 0;
         for node in cn.iter_mut() {
