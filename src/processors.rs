@@ -55,6 +55,9 @@ impl Processor for Gain {
 }
 
 /// When the source ends, start it from the beginning.
+///
+/// If any of the sources doesn't restart on reset,
+/// the node stops.
 pub struct Loop {}
 
 impl Loop {
@@ -283,15 +286,23 @@ impl Processor for Pause {
 /// Stop producing sound after the given amount of time.
 pub struct PauseAfter {
     left: u32,
+    wait: u32,
 }
 
 impl PauseAfter {
     pub fn new(time: u32) -> Self {
-        Self { left: time }
+        Self {
+            left: time,
+            wait: time,
+        }
     }
 }
 
 impl Processor for PauseAfter {
+    fn reset(&mut self) {
+        self.left = self.wait;
+    }
+
     fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         if self.left == 0 {
             return None;
@@ -304,56 +315,29 @@ impl Processor for PauseAfter {
 /// Start producing sound after the given amount of time.
 pub struct StartAfter {
     left: u32,
+    wait: u32,
 }
 
 impl StartAfter {
     pub fn new(time: u32) -> Self {
-        Self { left: time }
+        Self {
+            left: time,
+            wait: time,
+        }
     }
 }
 
 impl Processor for StartAfter {
+    fn reset(&mut self) {
+        self.left = self.wait;
+    }
+
     fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         if self.left > 0 {
             return None;
         }
         self.left -= 1;
         Mix::new().process_children(cn)
-    }
-}
-
-/// When an audio source stops, restart (reset) it.
-pub struct FullLoop {}
-
-impl FullLoop {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl Processor for FullLoop {
-    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
-        let mut sum = Frame::zero();
-        let mut count = 0;
-        for node in cn.iter_mut() {
-            let frame = match node.next_frame() {
-                Some(frame) => frame,
-                None => {
-                    node.reset_all();
-                    match node.next_frame() {
-                        Some(frame) => frame,
-                        None => continue,
-                    }
-                }
-            };
-            sum = sum + &frame;
-            count += 1;
-        }
-        if count == 0 {
-            return None;
-        }
-        let f = sum / count as f32;
-        self.process_frame(f)
     }
 }
 
@@ -446,6 +430,13 @@ impl LowHighPass {
 }
 
 impl Processor for LowHighPass {
+    fn reset(&mut self) {
+        self.y_n2 = Sample::ZERO;
+        self.x_n2 = Sample::ZERO;
+        self.y_n1 = Sample::ZERO;
+        self.x_n1 = Sample::ZERO;
+    }
+
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         let bx0 = self.b0 * s;
         let bx1 = self.b1 * self.x_n1;
@@ -502,5 +493,24 @@ impl Processor for TakeRight {
         }
         let s = sum / cn.len() as f32;
         Some(Frame::mono(s))
+    }
+}
+
+/// Swap left and right channels.
+pub struct Swap {}
+
+impl Swap {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for Swap {
+    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
+        if let Some(right) = f.right {
+            Some(Frame::stereo(right, f.left))
+        } else {
+            Some(f)
+        }
     }
 }

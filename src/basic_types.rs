@@ -5,7 +5,6 @@ pub const SAMPLE_RATE: Position = 44_100;
 pub const SAMPLE_DURATION: f32 = 1.0 / SAMPLE_RATE as f32;
 
 pub type Sample = wide::f32x8;
-pub type Values = alloc::vec::Vec<f32>;
 
 #[derive(Clone)]
 pub struct Frame {
@@ -16,7 +15,7 @@ pub struct Frame {
 impl Frame {
     pub(crate) fn zero() -> Self {
         Self {
-            left: wide::f32x8::ZERO,
+            left: Sample::ZERO,
             right: None,
         }
     }
