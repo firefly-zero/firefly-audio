@@ -1,5 +1,4 @@
 use crate::*;
-use alloc::vec;
 use alloc::vec::Vec;
 use micromath::F32Ext;
 
@@ -101,55 +100,6 @@ impl Processor for Concat {
             }
         }
         None
-    }
-}
-
-/// Delay the input only for one tick.
-pub struct OneDelay {
-    prev: Frame,
-}
-
-impl OneDelay {
-    pub fn new() -> Self {
-        Self {
-            prev: Frame::zero(),
-        }
-    }
-}
-
-impl Processor for OneDelay {
-    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
-        let res = self.prev.clone();
-        self.prev = f;
-        Some(res)
-    }
-}
-
-/// Delay the input for the given number of samples.
-pub struct Delay {
-    buf: Vec<Frame>,
-    i: usize,
-}
-
-impl Delay {
-    pub fn new(size: usize) -> Self {
-        Self {
-            buf: vec![Frame::zero(); size],
-            i: 0,
-        }
-    }
-}
-
-impl Processor for Delay {
-    // TODO: process_children shouldn't stop when the source ends.
-    // We should exhaust the buffer first.
-    fn process_frame(&mut self, f: Frame) -> Option<Frame> {
-        self.buf[self.i] = f;
-        self.i = self.i.wrapping_add(1);
-        if self.i >= self.buf.len() {
-            self.i = 0;
-        }
-        Some(self.buf[self.i].clone())
     }
 }
 
