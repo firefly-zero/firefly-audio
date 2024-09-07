@@ -216,6 +216,38 @@ impl Processor for FadeIn {
     }
 }
 
+/// A node that can mute the audio stream.
+pub struct Mute {
+    muted: bool,
+}
+
+impl Mute {
+    pub fn new() -> Self {
+        Self { muted: false }
+    }
+
+    pub fn mute(&mut self) {
+        self.muted = true;
+    }
+
+    pub fn unmute(&mut self) {
+        self.muted = false;
+    }
+}
+
+impl Processor for Mute {
+    fn reset(&mut self) {
+        self.muted = false;
+    }
+
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        if self.muted {
+            return Some(Sample::ZERO);
+        }
+        Some(s)
+    }
+}
+
 /// A node that can pause the audio stream.
 pub struct Pause {
     paused: bool,
@@ -240,11 +272,88 @@ impl Processor for Pause {
         self.paused = false;
     }
 
-    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
         if self.paused {
-            return Some(Sample::ZERO);
+            return None;
         }
-        Some(s)
+        Mix::new().process_children(cn)
+    }
+}
+
+/// Stop producing sound after the given amount of time.
+pub struct PauseAfter {
+    left: u32,
+}
+
+impl PauseAfter {
+    pub fn new(time: u32) -> Self {
+        Self { left: time }
+    }
+}
+
+impl Processor for PauseAfter {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        if self.left == 0 {
+            return None;
+        }
+        self.left -= 1;
+        Mix::new().process_children(cn)
+    }
+}
+
+/// Start producing sound after the given amount of time.
+pub struct StartAfter {
+    left: u32,
+}
+
+impl StartAfter {
+    pub fn new(time: u32) -> Self {
+        Self { left: time }
+    }
+}
+
+impl Processor for StartAfter {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        if self.left > 0 {
+            return None;
+        }
+        self.left -= 1;
+        Mix::new().process_children(cn)
+    }
+}
+
+/// When an audio source stops, restart (reset) it.
+pub struct FullLoop {}
+
+impl FullLoop {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Processor for FullLoop {
+    fn process_children(&mut self, cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut sum = Frame::zero();
+        let mut count = 0;
+        for node in cn.iter_mut() {
+            let frame = match node.next_frame() {
+                Some(frame) => frame,
+                None => {
+                    node.reset_all();
+                    match node.next_frame() {
+                        Some(frame) => frame,
+                        None => continue,
+                    }
+                }
+            };
+            sum = sum + &frame;
+            count += 1;
+        }
+        if count == 0 {
+            return None;
+        }
+        let f = sum / count as f32;
+        self.process_frame(f)
     }
 }
 
