@@ -232,64 +232,6 @@ impl Processor for Pause {
     }
 }
 
-/// Stop producing sound after the given amount of time.
-pub struct PauseAfter {
-    left: u32,
-    wait: u32,
-}
-
-impl PauseAfter {
-    pub fn new(time: u32) -> Self {
-        Self {
-            left: time,
-            wait: time,
-        }
-    }
-}
-
-impl Processor for PauseAfter {
-    fn reset(&mut self) {
-        self.left = self.wait;
-    }
-
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
-        if self.left == 0 {
-            return None;
-        }
-        self.left -= 1;
-        Mix::new().process_children(cn)
-    }
-}
-
-/// Start producing sound after the given amount of time.
-pub struct StartAfter {
-    left: u32,
-    wait: u32,
-}
-
-impl StartAfter {
-    pub fn new(time: u32) -> Self {
-        Self {
-            left: time,
-            wait: time,
-        }
-    }
-}
-
-impl Processor for StartAfter {
-    fn reset(&mut self) {
-        self.left = self.wait;
-    }
-
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
-        if self.left > 0 {
-            return None;
-        }
-        self.left -= 1;
-        Mix::new().process_children(cn)
-    }
-}
-
 /// Tracks the current position (elapsed time) of the audio stream.
 pub struct TrackPosition {
     elapsed: Position,
