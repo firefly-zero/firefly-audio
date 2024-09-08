@@ -1,7 +1,11 @@
 use crate::*;
+use alloc::boxed::Box;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub struct Manager {
-    pub root: Node,
+    root: Node,
+    paths: Vec<Box<[u8]>>,
     prev: Option<Frame>,
     consumed: usize,
 }
@@ -10,9 +14,43 @@ impl Manager {
     pub fn new() -> Self {
         Self {
             root: Node::new_root(),
+            paths: vec![Box::new([])],
             prev: None,
             consumed: 0,
         }
+    }
+
+    pub fn get_node(&mut self, id: u32) -> Option<&mut Node> {
+        let path = self.paths.get(id as usize)?;
+        Some(self.root.get_node(path))
+    }
+
+    pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Option<u32> {
+        let parent_path = self.paths.get(parent_id as usize)?;
+        let parent_node = self.root.get_node(parent_path);
+        let sub_id = parent_node.add(b)?;
+        let id = self.paths.len() as u32;
+        let mut path = Vec::new();
+        path.extend_from_slice(parent_path);
+        path.push(sub_id);
+        self.paths.push(path.into_boxed_slice());
+        Some(id)
+    }
+
+    /// Remove all child nodes.
+    pub fn clear(&mut self, id: u32) -> Option<()> {
+        let path = self.paths.get(id as usize)?;
+        let node = self.root.get_node(path);
+        node.children.clear();
+        let mut paths = Vec::new();
+        for p in &self.paths {
+            if p.len() > path.len() && p.starts_with(path) {
+                continue;
+            }
+            paths.push(p.clone());
+        }
+        self.paths = paths;
+        Some(())
     }
 
     pub fn write(&mut self, buf: &mut [i16]) {

@@ -106,7 +106,6 @@ impl Processor for Square {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
-            // TODO: use f32::round
             *sample = if phase - floor(phase) >= 0.5 { 1. } else { 0. };
             phase += self.freq * SAMPLE_DURATION;
             phase -= floor(phase);
