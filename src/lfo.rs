@@ -71,18 +71,23 @@ impl LFO for Linear {
 
 pub struct Sine {
     s: f32,
+    mid: f32,
+    amp: f32,
 }
 
 impl Sine {
-    pub fn new(freq: f32) -> Self {
+    pub fn new(freq: f32, low: f32, high: f32) -> Self {
         let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
-        Self { s }
+        let amp = (high - low) / 2.;
+        let mid = low + amp;
+        Self { s, mid, amp }
     }
 }
 
 impl LFO for Sine {
     fn get(&self, now: u32) -> f32 {
-        F32(self.s * now as f32).sin().0
+        let s = F32(self.s * now as f32).sin().0;
+        self.mid + self.amp * s
     }
 }
 
@@ -145,7 +150,7 @@ mod tests {
     #[test]
     fn sine() {
         const R: u32 = 44_100; // sample rate
-        let lfo = Sine::new(1.);
+        let lfo = Sine::new(1., -1., 1.);
         assert_eq!(lfo.get(0), 0.);
         assert!(lfo.get(1) > 0.);
         assert_eq!(lfo.get(R / 4), 1.);
