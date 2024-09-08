@@ -1,5 +1,9 @@
 //! A collection of Low-Frequency Oscillators.
 
+use crate::SAMPLE_DURATION;
+use core::f32;
+use micromath::F32;
+
 /// A Low-Frequency Oscillator. Used for modulation.
 pub trait LFO {
     fn get(&self, now: u32) -> f32;
@@ -65,9 +69,32 @@ impl LFO for Linear {
     }
 }
 
+pub struct Sine {
+    s: f32,
+}
+
+impl Sine {
+    pub fn new(freq: f32) -> Self {
+        let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
+        Self { s }
+    }
+}
+
+impl LFO for Sine {
+    fn get(&self, now: u32) -> f32 {
+        F32(self.s * now as f32).sin().0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn assert_close(a: f32, b: f32) {
+        let diff = a - b;
+        assert!(diff < 0.00001, "{a} != {b}");
+        assert!(diff > -0.00001, "{a} != {b}");
+    }
 
     #[test]
     fn switch() {
@@ -113,5 +140,18 @@ mod tests {
         assert_eq!(lfo.get(13), 3.4);
         assert_eq!(lfo.get(15), 3.);
         assert_eq!(lfo.get(17), 2.6);
+    }
+
+    #[test]
+    fn sine() {
+        const R: u32 = 44_100; // sample rate
+        let lfo = Sine::new(1.);
+        assert_eq!(lfo.get(0), 0.);
+        assert!(lfo.get(1) > 0.);
+        assert_eq!(lfo.get(R / 4), 1.);
+        assert_close(lfo.get(R / 2), 0.);
+        assert!(lfo.get(R / 2 + 1) < 0.);
+        assert_eq!(lfo.get(R * 3 / 4), -1.);
+        assert_close(lfo.get(R), 0.);
     }
 }
