@@ -28,6 +28,10 @@ impl Manager {
     }
 
     pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Result<u32, NodeError> {
+        const MAX_NODES: usize = 32;
+        if self.paths.len() >= MAX_NODES {
+            return Err(NodeError::TooManyNodes);
+        };
         let Some(parent_path) = self.paths.get(parent_id as usize) else {
             return Err(NodeError::UnknownID(parent_id));
         };

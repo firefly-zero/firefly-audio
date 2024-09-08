@@ -51,7 +51,7 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new_root() -> Self {
+    pub(crate) fn new_root() -> Self {
         Self {
             children: Vec::new(),
             proc: Box::new(Mix::new()),
@@ -80,7 +80,7 @@ impl Node {
         node.get_node(&path[1..])
     }
 
-    pub fn next_frame(&mut self) -> Option<Frame> {
+    pub(crate) fn next_frame(&mut self) -> Option<Frame> {
         self.proc.process_children(&mut self.children)
     }
 
