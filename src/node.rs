@@ -1,10 +1,20 @@
+use crate::lfo::LFO;
 use crate::*;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+const MODULATE_EVERY: u32 = SAMPLE_RATE / 20;
+
+struct Modulator {
+    param: u8,
+    lfo: Box<dyn LFO>,
+    time: u32,
+}
+
 pub struct Node {
-    pub(crate) children: Vec<Node>,
+    children: Vec<Node>,
     proc: Box<dyn Processor>,
+    modulator: Option<Modulator>,
 }
 
 impl Node {
@@ -12,9 +22,11 @@ impl Node {
         Self {
             children: Vec::new(),
             proc: Box::new(Mix::new()),
+            modulator: None,
         }
     }
 
+    /// Add a child node.
     pub(crate) fn add(&mut self, proc: Box<dyn Processor>) -> Result<u8, NodeError> {
         const MAX_NODES: u32 = 4;
         if self.children.len() as u32 >= MAX_NODES {
@@ -23,6 +35,7 @@ impl Node {
         let child_id = self.children.len() as u8;
         let child = Self {
             children: Vec::new(),
+            modulator: None,
             proc,
         };
         self.children.push(child);
@@ -38,7 +51,18 @@ impl Node {
     }
 
     pub(crate) fn next_frame(&mut self) -> Option<Frame> {
+        if let Some(modulator) = self.modulator.as_mut() {
+            if modulator.time % MODULATE_EVERY == 0 {
+                let val = modulator.lfo.get(modulator.time);
+                self.proc.set(modulator.param, val);
+            }
+            modulator.time += 1;
+        }
         self.proc.process_children(&mut self.children)
+    }
+
+    pub(crate) fn clear(&mut self) {
+        self.children.clear()
     }
 
     /// Reset the current node processor to its initial state.
@@ -54,7 +78,15 @@ impl Node {
         }
     }
 
-    pub fn set_behavior(&mut self, b: Box<dyn Processor>) {
-        self.proc = b;
+    // TODO: reset modulator
+
+    /// Set modulator for the given parameter.
+    pub fn modulate(&mut self, param: u8, lfo: Box<dyn LFO>) {
+        let modulator = Modulator {
+            param,
+            lfo,
+            time: 0,
+        };
+        self.modulator = Some(modulator);
     }
 }

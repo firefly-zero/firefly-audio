@@ -4,6 +4,10 @@ use alloc::vec::Vec;
 pub type Nodes = Vec<Node>;
 
 pub trait Processor {
+    fn set(&mut self, _param: u8, _val: f32) {
+        // do nothing
+    }
+
     fn reset(&mut self) {
         // do nothing
     }

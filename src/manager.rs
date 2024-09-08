@@ -51,7 +51,7 @@ impl Manager {
             return Err(NodeError::UnknownID(id));
         };
         let node = self.root.get_node(path);
-        node.children.clear();
+        node.clear();
         let mut paths = Vec::new();
         for p in &self.paths {
             if p.len() > path.len() && p.starts_with(path) {
