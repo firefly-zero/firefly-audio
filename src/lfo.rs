@@ -28,14 +28,15 @@ impl LFO for Switch {
     }
 }
 
-pub struct RampUp {
+/// Linearly ramp up or cut down from one value to another on the given time interval.
+pub struct Linear {
     start: f32,
     end: f32,
     start_at: u32,
     end_at: u32,
 }
 
-impl RampUp {
+impl Linear {
     pub fn new(start: f32, end: f32, start_at: u32, end_at: u32) -> Self {
         Self {
             start,
@@ -46,7 +47,7 @@ impl RampUp {
     }
 }
 
-impl LFO for RampUp {
+impl LFO for Linear {
     fn get(&self, now: u32) -> f32 {
         if now <= self.start_at {
             return self.start;
@@ -84,7 +85,7 @@ mod tests {
 
     #[test]
     fn ramp_up() {
-        let lfo = RampUp::new(2., 4., 10, 20);
+        let lfo = Linear::new(2., 4., 10, 20);
         assert_eq!(lfo.get(0), 2.);
         assert_eq!(lfo.get(8), 2.);
         assert_eq!(lfo.get(10), 2.);
@@ -96,5 +97,21 @@ mod tests {
         assert_eq!(lfo.get(13), 2.6);
         assert_eq!(lfo.get(15), 3.);
         assert_eq!(lfo.get(17), 3.4);
+    }
+
+    #[test]
+    fn cut_down() {
+        let lfo = Linear::new(4., 2., 10, 20);
+        assert_eq!(lfo.get(0), 4.);
+        assert_eq!(lfo.get(8), 4.);
+        assert_eq!(lfo.get(10), 4.);
+
+        assert_eq!(lfo.get(20), 2.);
+        assert_eq!(lfo.get(23), 2.);
+        assert_eq!(lfo.get(100), 2.);
+
+        assert_eq!(lfo.get(13), 3.4);
+        assert_eq!(lfo.get(15), 3.);
+        assert_eq!(lfo.get(17), 2.6);
     }
 }
