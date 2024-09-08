@@ -58,10 +58,10 @@ impl Node {
         }
     }
 
-    pub fn add(&mut self, proc: Box<dyn Processor>) -> Option<u8> {
+    pub(crate) fn add(&mut self, proc: Box<dyn Processor>) -> Result<u8, NodeError> {
         const MAX_NODES: u32 = 4;
         if self.children.len() as u32 >= MAX_NODES {
-            return None;
+            return Err(NodeError::TooManyChildren);
         }
         let child_id = self.children.len() as u8;
         let child = Self {
@@ -69,7 +69,7 @@ impl Node {
             proc,
         };
         self.children.push(child);
-        Some(child_id)
+        Ok(child_id)
     }
 
     pub(crate) fn get_node(&mut self, path: &[u8]) -> &mut Self {

@@ -20,13 +20,17 @@ impl Manager {
         }
     }
 
-    pub fn get_node(&mut self, id: u32) -> Option<&mut Node> {
-        let path = self.paths.get(id as usize)?;
-        Some(self.root.get_node(path))
+    pub fn get_node(&mut self, id: u32) -> Result<&mut Node, NodeError> {
+        let Some(path) = self.paths.get(id as usize) else {
+            return Err(NodeError::UnknownID(id));
+        };
+        Ok(self.root.get_node(path))
     }
 
-    pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Option<u32> {
-        let parent_path = self.paths.get(parent_id as usize)?;
+    pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Result<u32, NodeError> {
+        let Some(parent_path) = self.paths.get(parent_id as usize) else {
+            return Err(NodeError::UnknownID(parent_id));
+        };
         let parent_node = self.root.get_node(parent_path);
         let sub_id = parent_node.add(b)?;
         let id = self.paths.len() as u32;
@@ -34,12 +38,14 @@ impl Manager {
         path.extend_from_slice(parent_path);
         path.push(sub_id);
         self.paths.push(path.into_boxed_slice());
-        Some(id)
+        Ok(id)
     }
 
     /// Remove all child nodes.
-    pub fn clear(&mut self, id: u32) -> Option<()> {
-        let path = self.paths.get(id as usize)?;
+    pub fn clear(&mut self, id: u32) -> Result<(), NodeError> {
+        let Some(path) = self.paths.get(id as usize) else {
+            return Err(NodeError::UnknownID(id));
+        };
         let node = self.root.get_node(path);
         node.children.clear();
         let mut paths = Vec::new();
@@ -50,7 +56,7 @@ impl Manager {
             paths.push(p.clone());
         }
         self.paths = paths;
-        Some(())
+        Ok(())
     }
 
     pub fn write(&mut self, buf: &mut [i16]) {

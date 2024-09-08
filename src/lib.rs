@@ -3,12 +3,14 @@
 extern crate alloc;
 
 mod basic_types;
+mod error;
 mod manager;
 mod node;
 mod processors;
 mod sources;
 
 pub use basic_types::*;
+pub use error::*;
 pub use manager::*;
 pub use node::*;
 pub use processors::*;
