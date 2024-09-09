@@ -43,6 +43,7 @@ pub struct Sine {
 }
 
 impl Sine {
+    // TODO: drop phase support
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             freq,
