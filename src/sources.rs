@@ -3,6 +3,7 @@
 //! Includes oscillators, file readers, audio samples, etc.
 use crate::*;
 use alloc::vec::Vec;
+use micromath::F32Ext;
 
 /// A sound source that is always stopped.
 pub struct Empty {}
@@ -62,7 +63,7 @@ impl Processor for Sine {
         for sample in &mut element {
             *sample = phase;
             phase += self.freq * SAMPLE_DURATION;
-            phase -= floor(phase);
+            phase -= F32Ext::floor(phase);
         }
         self.phase = phase;
         let element = Sample::new(element);
@@ -70,14 +71,6 @@ impl Processor for Sine {
         let s = s.sin();
         Some(Frame::mono(s))
     }
-}
-
-fn floor(x: f32) -> f32 {
-    let mut res = (x as i32) as f32;
-    if x < res {
-        res -= 1.0;
-    }
-    res
 }
 
 /// Square wave oscillator.
@@ -106,9 +99,10 @@ impl Processor for Square {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
-            *sample = if phase - floor(phase) >= 0.5 { 1. } else { 0. };
+            let dec = phase - F32Ext::floor(phase);
+            *sample = if dec >= 0.5 { 1. } else { 0. };
             phase += self.freq * SAMPLE_DURATION;
-            phase -= floor(phase);
+            phase -= F32Ext::floor(phase);
         }
         self.phase = phase;
 

@@ -2,7 +2,7 @@
 
 use crate::SAMPLE_DURATION;
 use core::f32;
-use micromath::F32;
+use micromath::F32Ext;
 
 /// A Low-Frequency Oscillator. Used for modulation.
 pub trait LFO {
@@ -86,7 +86,7 @@ impl Sine {
 
 impl LFO for Sine {
     fn get(&self, now: u32) -> f32 {
-        let s = F32(self.s * now as f32).sin().0;
+        let s = F32Ext::sin(self.s * now as f32).sin();
         self.mid + self.amp * s
     }
 }
