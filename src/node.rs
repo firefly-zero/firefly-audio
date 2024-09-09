@@ -1,20 +1,20 @@
-use crate::lfo::LFO;
+use crate::modulators::Modulator;
 use crate::*;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
 
-struct Modulator {
+struct WiredModulator {
     param: u8,
-    lfo: Box<dyn LFO>,
+    modulator: Box<dyn Modulator>,
     time: u32,
 }
 
 pub struct Node {
     children: Vec<Node>,
     proc: Box<dyn Processor>,
-    modulator: Option<Modulator>,
+    modulator: Option<WiredModulator>,
 }
 
 impl Node {
@@ -53,7 +53,7 @@ impl Node {
     pub(crate) fn next_frame(&mut self) -> Option<Frame> {
         if let Some(modulator) = self.modulator.as_mut() {
             if modulator.time % MODULATE_EVERY == 0 {
-                let val = modulator.lfo.get(modulator.time);
+                let val = modulator.modulator.get(modulator.time);
                 self.proc.set(modulator.param, val);
             }
             modulator.time += 8;
@@ -81,10 +81,10 @@ impl Node {
     // TODO: reset modulator
 
     /// Set modulator for the given parameter.
-    pub fn modulate(&mut self, param: u8, lfo: Box<dyn LFO>) {
-        let modulator = Modulator {
+    pub fn modulate(&mut self, param: u8, lfo: Box<dyn Modulator>) {
+        let modulator = WiredModulator {
             param,
-            lfo,
+            modulator: lfo,
             time: 0,
         };
         self.modulator = Some(modulator);

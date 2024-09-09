@@ -1,28 +1,30 @@
-//! A collection of Low-Frequency Oscillators.
+//! A collection of modulators.
 
 use crate::SAMPLE_DURATION;
 use core::f32;
 use micromath::F32Ext;
 
-/// A Low-Frequency Oscillator. Used for modulation.
-pub trait LFO {
+/// An audio node parameter modulator.
+///
+/// Includes both envelopes and LFOs.
+pub trait Modulator {
     fn get(&self, now: u32) -> f32;
 }
 
 /// Emit first value before the given moment and the second value after.
-pub struct Switch {
+pub struct Hold {
     v1: f32,
     v2: f32,
     time: u32,
 }
 
-impl Switch {
+impl Hold {
     pub fn new(v1: f32, v2: f32, time: u32) -> Self {
         Self { v1, v2, time }
     }
 }
 
-impl LFO for Switch {
+impl Modulator for Hold {
     fn get(&self, now: u32) -> f32 {
         if now < self.time {
             self.v1
@@ -51,7 +53,7 @@ impl Linear {
     }
 }
 
-impl LFO for Linear {
+impl Modulator for Linear {
     fn get(&self, now: u32) -> f32 {
         if now <= self.start_at {
             return self.start;
@@ -69,6 +71,7 @@ impl LFO for Linear {
     }
 }
 
+// Sine wave low-frequency oscillator.
 pub struct Sine {
     s: f32,
     mid: f32,
@@ -84,7 +87,7 @@ impl Sine {
     }
 }
 
-impl LFO for Sine {
+impl Modulator for Sine {
     fn get(&self, now: u32) -> f32 {
         let s = F32Ext::sin(self.s * now as f32).sin();
         self.mid + self.amp * s
@@ -103,7 +106,7 @@ mod tests {
 
     #[test]
     fn switch() {
-        let lfo = Switch::new(2., 4., 10);
+        let lfo = Hold::new(2., 4., 10);
         assert_eq!(lfo.get(0), 2.);
         assert_eq!(lfo.get(6), 2.);
         assert_eq!(lfo.get(9), 2.);

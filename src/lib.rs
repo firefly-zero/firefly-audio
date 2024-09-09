@@ -4,8 +4,8 @@ extern crate alloc;
 
 mod basic_types;
 mod error;
-pub mod lfo;
 mod manager;
+pub mod modulators;
 mod node;
 mod processor;
 mod processors;
