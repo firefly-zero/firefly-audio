@@ -139,41 +139,6 @@ impl Processor for Pan {
     }
 }
 
-/// Fade in the input for the given number of samples.
-///
-/// The fade-in is linear. If you need a non-linear fade-in, use modulated [`Gain`].
-pub struct FadeIn {
-    start_gain: f32,
-    total: Position,
-    elapsed: Position,
-}
-
-impl FadeIn {
-    pub fn new(start_gain: f32, duration: Position) -> Self {
-        Self {
-            start_gain,
-            total: duration,
-            elapsed: 0,
-        }
-    }
-}
-
-impl Processor for FadeIn {
-    fn reset(&mut self) {
-        self.elapsed = 0;
-    }
-
-    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
-        if self.elapsed >= self.total {
-            return Some(s);
-        }
-        let ratio = (self.elapsed / self.total) as f32;
-        let gain = self.start_gain + (1. - ratio);
-        self.elapsed += 1;
-        Some(s * gain)
-    }
-}
-
 /// A node that can mute the audio stream.
 pub struct Mute {
     muted: bool,
