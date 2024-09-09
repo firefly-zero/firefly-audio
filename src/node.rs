@@ -3,7 +3,7 @@ use crate::*;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-const MODULATE_EVERY: u32 = SAMPLE_RATE / 20;
+const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
 
 struct Modulator {
     param: u8,
@@ -56,7 +56,7 @@ impl Node {
                 let val = modulator.lfo.get(modulator.time);
                 self.proc.set(modulator.param, val);
             }
-            modulator.time += 1;
+            modulator.time += 8;
         }
         self.proc.process_children(&mut self.children)
     }

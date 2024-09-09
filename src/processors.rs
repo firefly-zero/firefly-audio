@@ -47,6 +47,12 @@ impl Gain {
 }
 
 impl Processor for Gain {
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.lvl = val;
+        }
+    }
+
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         Some(s * self.lvl)
     }
