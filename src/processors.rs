@@ -376,3 +376,35 @@ impl Processor for Swap {
         }
     }
 }
+
+// Clamp the amplitude onto the given interval
+pub struct Clip {
+    low: f32,
+    high: f32,
+}
+
+impl Clip {
+    pub fn new(low: f32, high: f32) -> Self {
+        Self { low, high }
+    }
+}
+
+impl Processor for Clip {
+    fn process_sample(&mut self, s: Sample) -> Option<Sample> {
+        let s = s.fast_max(self.low.into());
+        let s = s.fast_min(self.high.into());
+        Some(s)
+    }
+}
+
+// TODO: DelayLeft
+// TODO: DelayRight
+// TODO: Reverb
+// TODO: Compressor
+// TODO: Overdrive
+// TODO: BitCrusher
+// TODO: Limiter
+// TODO: Bandpass
+// TODO: Chorus
+// TODO: Vibrato
+// https://www.masteringbox.com/learn/audio-effects

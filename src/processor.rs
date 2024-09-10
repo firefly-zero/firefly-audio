@@ -47,16 +47,3 @@ pub trait Processor {
         Some(s)
     }
 }
-
-// TODO: DelayLeft
-// TODO: DelayRight
-// TODO: Reverb
-// TODO: Compressor
-// TODO: Overdrive
-// TODO: BitCrusher
-// TODO: Clipping
-// TODO: Limiter
-// TODO: Bandpass
-// TODO: Chorus
-// TODO: Vibrato
-// https://www.masteringbox.com/learn/audio-effects

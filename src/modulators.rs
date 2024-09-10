@@ -6,8 +6,17 @@ use micromath::F32Ext;
 
 /// An audio node parameter modulator.
 ///
-/// Includes both envelopes and LFOs.
+/// Includes both [envelopes] and [LFOs].
+///
+/// [envelopes]: https://en.wikipedia.org/wiki/Envelope_(music)
+/// [LFOs]: https://en.wikipedia.org/wiki/Low-frequency_oscillation
 pub trait Modulator {
+    /// Get the modulator value at the given time (in samples).
+    ///
+    /// The time usually increases. It can go down if it wraps, which happens only
+    /// if the audio plays for a very long time. Or it can be intentionally reset to 0.
+    ///
+    /// The time value is not sequential: 8 might be followed by 200.
     fn get(&self, now: u32) -> f32;
 }
 

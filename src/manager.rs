@@ -138,6 +138,7 @@ fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
         let Some(s) = chan.next() else { break };
         even = !even;
         written += 1;
+        let s = s.clamp(0., 1.);
         *tar = (s * i16::MAX as f32) as i16;
     }
     written
