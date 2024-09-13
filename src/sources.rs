@@ -37,7 +37,7 @@ impl Processor for Zero {
 
 /// Sine wave oscillator.
 pub struct Sine {
-    freq: f32,
+    step: f32,
     phase: f32,
     initial_phase: f32,
 }
@@ -46,7 +46,7 @@ impl Sine {
     // TODO: drop phase support
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
-            freq,
+            step: freq * SAMPLE_DURATION,
             phase,
             initial_phase: phase,
         }
@@ -63,7 +63,7 @@ impl Processor for Sine {
         let mut phase = self.phase;
         for sample in &mut element {
             *sample = phase;
-            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
         let element = Sample::new(element);
@@ -75,7 +75,7 @@ impl Processor for Sine {
 
 /// Square wave oscillator.
 pub struct Square {
-    freq: f32,
+    step: f32,
     phase: f32,
     initial_phase: f32,
 }
@@ -83,7 +83,7 @@ pub struct Square {
 impl Square {
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
-            freq,
+            step: freq * SAMPLE_DURATION,
             phase,
             initial_phase: phase,
         }
@@ -101,7 +101,7 @@ impl Processor for Square {
         for sample in &mut samples {
             let dec = F32Ext::fract(phase);
             *sample = if dec >= 0.5 { 1. } else { -1. };
-            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -111,7 +111,7 @@ impl Processor for Square {
 
 /// Sawtooth wave oscillator.
 pub struct Sawtooth {
-    freq: f32,
+    step: f32,
     phase: f32,
     initial_phase: f32,
 }
@@ -119,7 +119,7 @@ pub struct Sawtooth {
 impl Sawtooth {
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
-            freq,
+            step: freq * SAMPLE_DURATION,
             phase,
             initial_phase: phase,
         }
@@ -136,7 +136,7 @@ impl Processor for Sawtooth {
         let mut phase = self.phase;
         for sample in &mut samples {
             *sample = phase;
-            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -147,7 +147,7 @@ impl Processor for Sawtooth {
 
 /// Triangle wave oscillator.
 pub struct Triangle {
-    freq: f32,
+    step: f32,
     phase: f32,
     initial_phase: f32,
 }
@@ -155,7 +155,7 @@ pub struct Triangle {
 impl Triangle {
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
-            freq,
+            step: freq * SAMPLE_DURATION,
             phase,
             initial_phase: phase,
         }
@@ -172,7 +172,7 @@ impl Processor for Triangle {
         let mut phase = self.phase;
         for sample in &mut samples {
             *sample = phase;
-            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
         let s = Sample::new(samples);
