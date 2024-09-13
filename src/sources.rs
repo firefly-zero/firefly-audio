@@ -63,8 +63,7 @@ impl Processor for Sine {
         let mut phase = self.phase;
         for sample in &mut element {
             *sample = phase;
-            phase += self.freq * SAMPLE_DURATION;
-            phase -= F32Ext::floor(phase);
+            phase = decimal(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let element = Sample::new(element);
@@ -102,8 +101,7 @@ impl Processor for Square {
         for sample in &mut samples {
             let dec = phase - F32Ext::floor(phase);
             *sample = if dec >= 0.5 { 1. } else { 0. };
-            phase += self.freq * SAMPLE_DURATION;
-            phase -= F32Ext::floor(phase);
+            phase = decimal(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -136,11 +134,9 @@ impl Processor for Sawtooth {
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
-        let dur = 1. / self.freq;
         for sample in &mut samples {
-            *sample = phase / dur;
-            phase += self.freq * SAMPLE_DURATION;
-            phase %= dur;
+            *sample = phase * 2. - 1.;
+            phase = decimal(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -180,8 +176,7 @@ impl Processor for Triangle {
                 amp = 1. - amp;
             }
             *sample = amp;
-            phase += self.freq * SAMPLE_DURATION;
-            phase %= dur;
+            phase = decimal(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -219,4 +214,8 @@ impl Processor for Noise {
         let samples = samples / u32::MAX as f32;
         Some(Frame::mono(samples))
     }
+}
+
+fn decimal(f: f32) -> f32 {
+    f - F32Ext::floor(f)
 }
