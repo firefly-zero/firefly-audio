@@ -106,7 +106,43 @@ impl Processor for Square {
             phase -= F32Ext::floor(phase);
         }
         self.phase = phase;
+        let s = Sample::new(samples);
+        Some(Frame::mono(s))
+    }
+}
 
+/// Sawtooth wave oscillator.
+pub struct Sawtooth {
+    freq: f32,
+    phase: f32,
+    initial_phase: f32,
+}
+
+impl Sawtooth {
+    pub fn new(freq: f32, phase: f32) -> Self {
+        Self {
+            freq,
+            phase,
+            initial_phase: phase,
+        }
+    }
+}
+
+impl Processor for Sawtooth {
+    fn reset(&mut self) {
+        self.phase = self.initial_phase;
+    }
+
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+        let mut samples = [0f32; 8];
+        let mut phase = self.phase;
+        let dur = 1. / self.freq;
+        for sample in &mut samples {
+            *sample = phase / dur;
+            phase += self.freq * SAMPLE_DURATION;
+            phase %= dur;
+        }
+        self.phase = phase;
         let s = Sample::new(samples);
         Some(Frame::mono(s))
     }

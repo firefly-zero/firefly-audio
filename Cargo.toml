@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-firefly-device = { path = "../firefly-device" }
+embedded-io = "0.6.1"
 micromath = "2.1.0"
 wide = { version = "0.7.28", default-features = false }
