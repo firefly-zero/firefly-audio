@@ -63,7 +63,7 @@ impl Processor for Sine {
         let mut phase = self.phase;
         for sample in &mut element {
             *sample = phase;
-            phase = decimal(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let element = Sample::new(element);
@@ -100,8 +100,8 @@ impl Processor for Square {
         let mut phase = self.phase;
         for sample in &mut samples {
             let dec = phase - F32Ext::floor(phase);
-            *sample = if dec >= 0.5 { 1. } else { 0. };
-            phase = decimal(phase + self.freq * SAMPLE_DURATION);
+            *sample = if dec >= 0.5 { 1. } else { -1. };
+            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -136,7 +136,7 @@ impl Processor for Sawtooth {
         let mut phase = self.phase;
         for sample in &mut samples {
             *sample = phase * 2. - 1.;
-            phase = decimal(phase + self.freq * SAMPLE_DURATION);
+            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -169,14 +169,9 @@ impl Processor for Triangle {
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
-        let dur = 1. / self.freq;
         for sample in &mut samples {
-            let mut amp = phase * 2. / dur;
-            if amp > 1. {
-                amp = 1. - amp;
-            }
-            *sample = amp;
-            phase = decimal(phase + self.freq * SAMPLE_DURATION);
+            *sample = (phase * 4. - 2.).abs() - 1.;
+            phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
@@ -216,6 +211,4 @@ impl Processor for Noise {
     }
 }
 
-fn decimal(f: f32) -> f32 {
-    f - F32Ext::floor(f)
-}
+// TODO: pulse (https://github.com/NibbleRealm/twang/blob/v0/src/osc/pulse.rs)
