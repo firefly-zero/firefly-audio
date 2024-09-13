@@ -99,7 +99,7 @@ impl Processor for Square {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
-            let dec = phase - F32Ext::floor(phase);
+            let dec = F32Ext::fract(phase);
             *sample = if dec >= 0.5 { 1. } else { -1. };
             phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
@@ -135,11 +135,12 @@ impl Processor for Sawtooth {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
-            *sample = phase * 2. - 1.;
+            *sample = phase;
             phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
+        let s = s * 2. - 1.;
         Some(Frame::mono(s))
     }
 }
@@ -170,11 +171,12 @@ impl Processor for Triangle {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
-            *sample = (phase * 4. - 2.).abs() - 1.;
+            *sample = phase;
             phase = F32Ext::fract(phase + self.freq * SAMPLE_DURATION);
         }
         self.phase = phase;
         let s = Sample::new(samples);
+        let s = (s * 4. - 2.).abs() - 1.;
         Some(Frame::mono(s))
     }
 }
