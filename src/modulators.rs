@@ -101,7 +101,7 @@ impl Sine {
 
 impl Modulator for Sine {
     fn get(&self, now: u32) -> f32 {
-        let s = F32Ext::sin(self.s * now as f32).sin();
+        let s = F32Ext::sin(self.s * now as f32);
         self.mid + self.amp * s
     }
 }

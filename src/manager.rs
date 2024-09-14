@@ -81,16 +81,17 @@ impl Manager {
         Ok(())
     }
 
+    /// Fill the given buffer with PCM sound values.
     pub fn write(&mut self, buf: &mut [i16]) {
         // If there is partially emitted frame left from the previous write iteration,
         // write it to the buffer.
         let mut buf = self.write_prev(buf);
 
         while buf.len() >= 16 {
-            let Some(mut frame) = self.root.next_frame() else {
+            let Some(frame) = self.root.next_frame() else {
                 break;
             };
-            let written = fill_buf(buf, &mut frame, 0);
+            let written = fill_buf(buf, &frame, 0);
             buf = &mut buf[written..];
         }
 
@@ -130,7 +131,8 @@ impl Manager {
     }
 }
 
-fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
+/// Write the given frame (starting from skip index) into the beginning of the buffer.
+fn fill_buf(buf: &mut [i16], frame: &Frame, skip: usize) -> usize {
     // make iterators over left and right channels
     let right = match frame.right {
         Some(right) => right,
@@ -139,7 +141,7 @@ fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
     let mut left = frame.left.as_array_ref().iter();
     let mut right = right.as_array_ref().iter();
 
-    // skip the given number
+    // skip the given number of samples
     let mut even = true;
     for _ in 0..skip {
         if even {
@@ -161,4 +163,47 @@ fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
         *tar = (s * f32::from(i16::MAX)) as i16;
     }
     written
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fill_buf_stereo() {
+        let frame = Frame::stereo(
+            Sample::new([
+                u2f(11),
+                u2f(13),
+                u2f(15),
+                u2f(17),
+                u2f(19),
+                u2f(21),
+                u2f(23),
+                u2f(25),
+            ]),
+            Sample::new([
+                u2f(12),
+                u2f(14),
+                u2f(16),
+                u2f(18),
+                u2f(20),
+                u2f(22),
+                u2f(24),
+                u2f(26),
+            ]),
+        );
+        let mut buf = [0i16; 20];
+        fill_buf(&mut buf[..], &frame, 0);
+        for (a, b) in buf[..15].iter().zip(&buf[1..]) {
+            assert!(a < b, "{a} < {b}");
+        }
+        assert!(buf[0] != 0);
+        assert_eq!(&buf[16..], &[0, 0, 0, 0]);
+    }
+
+    #[allow(clippy::cast_lossless)]
+    fn u2f(u: u16) -> f32 {
+        u as f32 / 100.
+    }
 }
