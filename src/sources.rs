@@ -183,33 +183,38 @@ impl Processor for Triangle {
 
 /// Generate a white noise
 pub struct Noise {
-    seed: i32,
+    prev: wide::i32x8,
 }
 
 impl Noise {
     pub fn new(seed: i32) -> Self {
-        Self { seed }
+        Self {
+            prev: wide::i32x8::new([
+                seed,
+                seed + 1,
+                seed + 2,
+                seed + 3,
+                seed + 4,
+                seed + 5,
+                seed + 6,
+                seed + 7,
+            ]),
+        }
     }
 }
 
 impl Processor for Noise {
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
-        let mut samples = [0f32; 8];
-        let mut x = self.seed;
-        if x == 0 {
-            x = 1;
-        }
-        for sample in samples.iter_mut() {
-            // xorshift RNG algorithm
-            x ^= x << 13;
-            x ^= x >> 17;
-            x ^= x << 5;
-            *sample = x as f32;
-        }
-        self.seed = x;
-        let samples = Sample::new(samples);
-        let samples = samples / u32::MAX as f32;
-        Some(Frame::mono(samples))
+        // xorshift RNG algorithm
+        // TODO: spectogram shows that it might be not uniformly distributed.
+        let mut x = self.prev;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        self.prev = x;
+        let s = Sample::from_i32x8(x);
+        let s = s / i32::MAX as f32;
+        Some(Frame::mono(s))
     }
 }
 
