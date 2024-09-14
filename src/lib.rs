@@ -1,5 +1,15 @@
 #![cfg_attr(not(test), no_std)]
-#![allow(clippy::new_without_default)]
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+#![allow(clippy::wildcard_imports)]
+// TODO: fix casting warnings
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_lossless,
+    clippy::module_name_repetitions,
+    clippy::new_without_default
+)]
 extern crate alloc;
 
 mod basic_types;

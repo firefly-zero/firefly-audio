@@ -20,6 +20,7 @@ impl Frame {
         }
     }
 
+    #[must_use]
     pub fn mono(s: Sample) -> Self {
         Self {
             left: s,
@@ -27,6 +28,7 @@ impl Frame {
         }
     }
 
+    #[must_use]
     pub fn stereo(l: Sample, r: Sample) -> Self {
         Self {
             left: l,
@@ -42,8 +44,7 @@ impl Add<&Frame> for Frame {
         let left = self.left + rhs.left;
         let right = match (self.right, rhs.right) {
             (None, None) => None,
-            (None, Some(r)) => Some(r),
-            (Some(r), None) => Some(r),
+            (None, Some(r)) | (Some(r), None) => Some(r),
             (Some(a), Some(b)) => Some(a + b),
         };
         Self { left, right }

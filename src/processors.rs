@@ -5,6 +5,7 @@ use micromath::F32Ext;
 pub struct Mix {}
 
 impl Mix {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -16,6 +17,7 @@ impl Processor for Mix {}
 pub struct AllForOne {}
 
 impl AllForOne {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -41,6 +43,7 @@ pub struct Gain {
 }
 
 impl Gain {
+    #[must_use]
     pub fn new(lvl: f32) -> Self {
         Self { lvl }
     }
@@ -65,6 +68,7 @@ impl Processor for Gain {
 pub struct Loop {}
 
 impl Loop {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -74,12 +78,11 @@ impl Processor for Loop {
     fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Frame::zero();
         for node in cn.iter_mut() {
-            let f = match node.next_frame() {
-                Some(f) => f,
-                None => {
-                    node.reset();
-                    node.next_frame()?
-                }
+            let f = if let Some(f) = node.next_frame() {
+                f
+            } else {
+                node.reset();
+                node.next_frame()?
             };
             sum = sum + &f;
         }
@@ -92,6 +95,7 @@ pub struct Concat {}
 
 impl Concat {
     // TODO: support fade-in/fade-out
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -114,6 +118,7 @@ pub struct Pan {
 }
 
 impl Pan {
+    #[must_use]
     pub fn new(v: f32) -> Self {
         let (left_weight, right_weight) = pan_weights(v);
         Self {
@@ -145,6 +150,7 @@ pub struct Mute {
 }
 
 impl Mute {
+    #[must_use]
     pub fn new() -> Self {
         Self { muted: false }
     }
@@ -177,6 +183,7 @@ pub struct Pause {
 }
 
 impl Pause {
+    #[must_use]
     pub fn new() -> Self {
         Self { paused: false }
     }
@@ -209,6 +216,7 @@ pub struct TrackPosition {
 }
 
 impl TrackPosition {
+    #[must_use]
     pub fn new() -> Self {
         Self { elapsed: 0 }
     }
@@ -245,6 +253,7 @@ pub struct LowHighPass {
 }
 
 impl LowHighPass {
+    #[must_use]
     pub fn new(low: bool, freq: u32, q: f32) -> Self {
         let mut res = Self {
             low,
@@ -320,6 +329,7 @@ impl Processor for LowHighPass {
 pub struct TakeLeft {}
 
 impl TakeLeft {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -340,6 +350,7 @@ impl Processor for TakeLeft {
 pub struct TakeRight {}
 
 impl TakeRight {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -362,6 +373,7 @@ impl Processor for TakeRight {
 pub struct Swap {}
 
 impl Swap {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -384,6 +396,7 @@ pub struct Clip {
 }
 
 impl Clip {
+    #[must_use]
     pub fn new(low: f32, high: f32) -> Self {
         Self { low, high }
     }

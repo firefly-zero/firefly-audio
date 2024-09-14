@@ -28,6 +28,7 @@ pub struct Hold {
 }
 
 impl Hold {
+    #[must_use]
     pub fn new(v1: f32, v2: f32, time: u32) -> Self {
         Self { v1, v2, time }
     }
@@ -52,6 +53,7 @@ pub struct Linear {
 }
 
 impl Linear {
+    #[must_use]
     pub fn new(start: f32, end: f32, start_at: u32, end_at: u32) -> Self {
         Self {
             start,
@@ -88,6 +90,7 @@ pub struct Sine {
 }
 
 impl Sine {
+    #[must_use]
     pub fn new(freq: f32, low: f32, high: f32) -> Self {
         let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
         let amp = (high - low) / 2.;
@@ -105,6 +108,7 @@ impl Modulator for Sine {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::float_cmp)]
     use super::*;
 
     fn assert_close(a: f32, b: f32) {

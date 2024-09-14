@@ -9,6 +9,7 @@ use micromath::F32Ext;
 pub struct Empty {}
 
 impl Empty {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -24,6 +25,7 @@ impl Processor for Empty {
 pub struct Zero {}
 
 impl Zero {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -43,7 +45,7 @@ pub struct Sine {
 }
 
 impl Sine {
-    // TODO: drop phase support
+    #[must_use]
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             step: freq * SAMPLE_DURATION,
@@ -81,6 +83,7 @@ pub struct Square {
 }
 
 impl Square {
+    #[must_use]
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             step: freq * SAMPLE_DURATION,
@@ -117,6 +120,7 @@ pub struct Sawtooth {
 }
 
 impl Sawtooth {
+    #[must_use]
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             step: freq * SAMPLE_DURATION,
@@ -153,6 +157,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    #[must_use]
     pub fn new(freq: f32, phase: f32) -> Self {
         Self {
             step: freq * SAMPLE_DURATION,
@@ -187,6 +192,7 @@ pub struct Noise {
 }
 
 impl Noise {
+    #[must_use]
     pub fn new(seed: i32) -> Self {
         Self {
             prev: wide::i32x8::new([

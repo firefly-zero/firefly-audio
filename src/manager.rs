@@ -11,6 +11,7 @@ pub struct Manager {
 }
 
 impl Manager {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             root: Node::new_root(),
@@ -20,6 +21,11 @@ impl Manager {
         }
     }
 
+    /// Find the node with the given ID in the graph.
+    ///
+    /// ## Errors
+    ///
+    /// If the node is not present, returns [`NodeError::UnknownID`].
     pub fn get_node(&mut self, id: u32) -> Result<&mut Node, NodeError> {
         let Some(path) = self.paths.get(id as usize) else {
             return Err(NodeError::UnknownID(id));
@@ -27,6 +33,13 @@ impl Manager {
         Ok(self.root.get_node(path))
     }
 
+    /// Find a child node for the node with the given ID. Returns the new node ID.
+    ///
+    /// ## Errors
+    ///
+    /// If the parent node is not present, returns [`NodeError::UnknownID`].
+    /// If there are too many nodes, returns [`NodeError::TooManyChildren`]
+    /// or [`NodeError::TooManyNodes`].
     pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Result<u32, NodeError> {
         const MAX_NODES: usize = 32;
         if self.paths.len() >= MAX_NODES {
@@ -45,7 +58,11 @@ impl Manager {
         Ok(id)
     }
 
-    /// Remove all child nodes.
+    /// Remove all child nodes from the node with the given ID.
+    ///
+    /// ## Errors
+    ///
+    /// If the node is not present, returns [`NodeError::UnknownID`].
     pub fn clear(&mut self, id: u32) -> Result<(), NodeError> {
         let Some(path) = self.paths.get(id as usize) else {
             return Err(NodeError::UnknownID(id));
@@ -84,7 +101,7 @@ impl Manager {
                 self.prev = Some(frame);
                 self.consumed = 0;
                 buf = self.write_prev(buf);
-                debug_assert!(buf.is_empty())
+                debug_assert!(buf.is_empty());
             } else {
                 // fill the remainder of the buffer with zeros
                 // to avoid playing old values

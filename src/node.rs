@@ -63,7 +63,7 @@ impl Node {
     }
 
     pub(crate) fn clear(&mut self) {
-        self.children.clear()
+        self.children.clear();
     }
 
     /// Reset the current node processor to its initial state.
@@ -74,7 +74,7 @@ impl Node {
     /// Reset the current node and all its children.
     pub fn reset_all(&mut self) {
         self.proc.reset();
-        for node in self.children.iter_mut() {
+        for node in &mut self.children {
             node.reset_all();
         }
     }
