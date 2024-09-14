@@ -28,9 +28,9 @@ impl Node {
     }
 
     /// Add a child node.
+    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn add(&mut self, proc: Box<dyn Processor>) -> Result<u8, NodeError> {
-        const MAX_NODES: u32 = 4;
-        if self.children.len() as u32 >= MAX_NODES {
+        if self.children.len() >= 4 {
             return Err(NodeError::TooManyChildren);
         }
         let child_id = self.children.len() as u8;

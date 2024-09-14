@@ -40,6 +40,7 @@ impl Manager {
     /// If the parent node is not present, returns [`NodeError::UnknownID`].
     /// If there are too many nodes, returns [`NodeError::TooManyChildren`]
     /// or [`NodeError::TooManyNodes`].
+    #[allow(clippy::cast_possible_truncation)]
     pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Result<u32, NodeError> {
         const MAX_NODES: usize = 32;
         if self.paths.len() >= MAX_NODES {
@@ -150,13 +151,14 @@ fn fill_buf(buf: &mut [i16], frame: &mut Frame, skip: usize) -> usize {
     }
 
     let mut written = 0;
+    #[allow(clippy::cast_possible_truncation)]
     for tar in buf.iter_mut() {
         let chan = if even { &mut left } else { &mut right };
         let Some(s) = chan.next() else { break };
         even = !even;
         written += 1;
         let s = s.clamp(-1., 1.);
-        *tar = (s * i16::MAX as f32) as i16;
+        *tar = (s * f32::from(i16::MAX)) as i16;
     }
     written
 }
