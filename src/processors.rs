@@ -237,7 +237,7 @@ impl Processor for TrackPosition {
 #[derive(Default)]
 pub struct LowHighPass {
     low: bool,
-    freq: u32,
+    freq: f32,
     q: f32,
 
     x_n1: Sample,
@@ -254,7 +254,7 @@ pub struct LowHighPass {
 
 impl LowHighPass {
     #[must_use]
-    pub fn new(low: bool, freq: u32, q: f32) -> Self {
+    pub fn new(low: bool, freq: f32, q: f32) -> Self {
         let mut res = Self {
             low,
             freq,
@@ -266,7 +266,7 @@ impl LowHighPass {
     }
 
     fn update_coefs(&mut self) {
-        let w0 = core::f32::consts::TAU * self.freq as f32 / SAMPLE_RATE as f32;
+        let w0 = core::f32::consts::TAU * self.freq / SAMPLE_RATE as f32;
         let cos_w0 = w0.cos();
         let alpha = w0.sin() / (2. * self.q);
 
