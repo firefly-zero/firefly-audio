@@ -137,6 +137,12 @@ fn pan_weights(v: f32) -> (f32, f32) {
 }
 
 impl Processor for Pan {
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            (self.left_weight, self.right_weight) = pan_weights(val);
+        }
+    }
+
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
         let left = f.left * self.left_weight;
         let right = f.right.map(|s| s * self.right_weight);
@@ -167,6 +173,12 @@ impl Mute {
 impl Processor for Mute {
     fn reset(&mut self) {
         self.muted = false;
+    }
+
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.muted = val < 0.5;
+        }
     }
 
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
@@ -200,6 +212,12 @@ impl Pause {
 impl Processor for Pause {
     fn reset(&mut self) {
         self.paused = false;
+    }
+
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.paused = val < 0.5;
+        }
     }
 
     fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
@@ -308,6 +326,14 @@ impl Processor for LowHighPass {
         self.x_n1 = Sample::ZERO;
     }
 
+    fn set(&mut self, param: u8, val: f32) {
+        #[allow(clippy::float_cmp)]
+        if param == 0 && val != self.freq {
+            self.freq = val;
+            self.update_coefs();
+        }
+    }
+
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         let bx0 = self.b0 * s;
         let bx1 = self.b1 * self.x_n1;
@@ -403,6 +429,18 @@ impl Clip {
 }
 
 impl Processor for Clip {
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            let diff = self.high - self.low;
+            self.low = val;
+            self.high = val + diff;
+        } else if param == 1 {
+            self.low = val;
+        } else if param == 2 {
+            self.high = val;
+        }
+    }
+
     fn process_sample(&mut self, s: Sample) -> Option<Sample> {
         let s = s.fast_max(self.low.into());
         let s = s.fast_min(self.high.into());

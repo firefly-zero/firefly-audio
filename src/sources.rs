@@ -60,6 +60,12 @@ impl Processor for Sine {
         self.phase = self.initial_phase;
     }
 
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.step = val * SAMPLE_DURATION;
+        }
+    }
+
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let mut element = [0f32; 8];
         let mut phase = self.phase;
@@ -96,6 +102,12 @@ impl Square {
 impl Processor for Square {
     fn reset(&mut self) {
         self.phase = self.initial_phase;
+    }
+
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.step = val * SAMPLE_DURATION;
+        }
     }
 
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
@@ -135,6 +147,12 @@ impl Processor for Sawtooth {
         self.phase = self.initial_phase;
     }
 
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.step = val * SAMPLE_DURATION;
+        }
+    }
+
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
@@ -170,6 +188,12 @@ impl Triangle {
 impl Processor for Triangle {
     fn reset(&mut self) {
         self.phase = self.initial_phase;
+    }
+
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            self.step = val * SAMPLE_DURATION;
+        }
     }
 
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
