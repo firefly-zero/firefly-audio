@@ -90,6 +90,7 @@ pub struct Sine {
 }
 
 impl Sine {
+    /// TODO: make initial phase configurable.
     #[must_use]
     pub fn new(freq: f32, low: f32, high: f32) -> Self {
         let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
