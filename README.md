@@ -16,5 +16,6 @@ cargo add firefly-audio
 let mut manager = firefly_audio::Manager::new();
 let node = Box::new(firefly_audio::Sine::new(440., 0.));
 manager.add_node(0, node);
-manager.write(some_audio_buffer);
+let mut buf = [0u8; 44_100];
+manager.write(&mut buf);
 ```
