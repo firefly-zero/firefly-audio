@@ -2,6 +2,13 @@
 name = "firefly-audio"
 version = "0.1.0"
 edition = "2021"
+authors = ["Firefly Zero team"]
+description = "Tree-based generator and processor for sound. Powers audio in Firefly Zero."
+homepage = "https://fireflyzero.com/"
+repository = "https://github.com/firefly-zero/firefly-audio"
+license = "MIT"
+keywords = ["gamedev", "audio", "sound", "dsp", "firefly-zero"]
+categories = ["multimedia::audio", "game-development", "no-std", "wasm"]
 
 [dependencies]
 embedded-io = "0.6.1"
