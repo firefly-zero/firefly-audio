@@ -82,7 +82,7 @@ impl Modulator for Linear {
     }
 }
 
-// Sine wave low-frequency oscillator.
+/// Sine wave low-frequency oscillator.
 pub struct Sine {
     s: f32,
     mid: f32,

@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 
 const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
 
-// A modulator connected to a parameter of a node.
+/// A modulator connected to a parameter of a node.
 struct WiredModulator {
     param: u8,
     modulator: Box<dyn Modulator>,

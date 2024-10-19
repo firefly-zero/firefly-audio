@@ -415,7 +415,7 @@ impl Processor for Swap {
     }
 }
 
-// Clamp the amplitude onto the given interval
+/// Clamp the amplitude onto the given interval
 pub struct Clip {
     low: f32,
     high: f32,
