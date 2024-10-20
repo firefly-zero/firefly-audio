@@ -134,10 +134,7 @@ impl Manager {
 /// Write the given frame (starting from skip index) into the beginning of the buffer.
 fn fill_buf(buf: &mut [i16], frame: &Frame, skip: usize) -> usize {
     // make iterators over left and right channels
-    let right = match frame.right {
-        Some(right) => right,
-        None => frame.left,
-    };
+    let right = frame.right.unwrap_or(frame.left);
     let mut left = frame.left.as_array_ref().iter();
     let mut right = right.as_array_ref().iter();
 

@@ -29,7 +29,7 @@ pub struct Hold {
 
 impl Hold {
     #[must_use]
-    pub fn new(v1: f32, v2: f32, time: u32) -> Self {
+    pub const fn new(v1: f32, v2: f32, time: u32) -> Self {
         Self { v1, v2, time }
     }
 }
@@ -54,7 +54,7 @@ pub struct Linear {
 
 impl Linear {
     #[must_use]
-    pub fn new(start: f32, end: f32, start_at: u32, end_at: u32) -> Self {
+    pub const fn new(start: f32, end: f32, start_at: u32, end_at: u32) -> Self {
         Self {
             start,
             end,
@@ -78,7 +78,7 @@ impl Modulator for Linear {
         }
         let elapsed = now - self.start_at;
         let ratio = elapsed as f32 / duration as f32;
-        self.start + (self.end - self.start) * ratio
+        (self.end - self.start).mul_add(ratio, self.start)
     }
 }
 
@@ -103,7 +103,7 @@ impl Sine {
 impl Modulator for Sine {
     fn get(&self, now: u32) -> f32 {
         let s = F32Ext::sin(self.s * now as f32);
-        self.mid + self.amp * s
+        self.amp.mul_add(s, self.mid)
     }
 }
 

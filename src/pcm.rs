@@ -11,9 +11,9 @@ pub enum PcmError {
 impl Display for PcmError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            PcmError::TooShort => write!(f, "file is too short"),
-            PcmError::BadMagicNumber => write!(f, "bad magic number"),
-            PcmError::BadSampleRate(sr) => write!(f, "bad sample rate: expected 44100, got {sr}"),
+            Self::TooShort => write!(f, "file is too short"),
+            Self::BadMagicNumber => write!(f, "bad magic number"),
+            Self::BadSampleRate(sr) => write!(f, "bad sample rate: expected 44100, got {sr}"),
         }
     }
 }
@@ -173,12 +173,12 @@ fn i16s_to_f32s_right(us: [u8; 32]) -> [f32; 8] {
 }
 
 fn i8_to_f32(u: u8) -> f32 {
-    #[allow(clippy::cast_possible_wrap)]
+    #[expect(clippy::cast_possible_wrap)]
     let i = u as i8;
-    f32::from(i) / f32::from(u8::MAX) * 2. - 1.
+    f32::from(i) * 2. / f32::from(u8::MAX) - 1.
 }
 
 fn i16_to_f32(l: u8, r: u8) -> f32 {
     let i = i16::from_le_bytes([l, r]);
-    f32::from(i) / f32::from(u16::MAX) * 2. - 1.
+    f32::from(i) * 2. / f32::from(u16::MAX) - 1.
 }

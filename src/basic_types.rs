@@ -13,7 +13,7 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub(crate) fn zero() -> Self {
+    pub(crate) const fn zero() -> Self {
         Self {
             left: Sample::ZERO,
             right: None,
@@ -21,7 +21,7 @@ impl Frame {
     }
 
     #[must_use]
-    pub fn mono(s: Sample) -> Self {
+    pub const fn mono(s: Sample) -> Self {
         Self {
             left: s,
             right: None,
@@ -29,7 +29,7 @@ impl Frame {
     }
 
     #[must_use]
-    pub fn stereo(l: Sample, r: Sample) -> Self {
+    pub const fn stereo(l: Sample, r: Sample) -> Self {
         Self {
             left: l,
             right: Some(r),
@@ -37,10 +37,10 @@ impl Frame {
     }
 }
 
-impl Add<&Frame> for Frame {
+impl Add<&Self> for Frame {
     type Output = Self;
 
-    fn add(self, rhs: &Frame) -> Self {
+    fn add(self, rhs: &Self) -> Self {
         let left = self.left + rhs.left;
         let right = match (self.right, rhs.right) {
             (None, None) => None,

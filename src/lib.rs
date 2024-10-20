@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 #![forbid(unsafe_code)]
-#![deny(clippy::pedantic)]
+#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
 #![allow(clippy::wildcard_imports)]
 // TODO: fix casting warning
 #![expect(
