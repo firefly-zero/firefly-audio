@@ -248,56 +248,76 @@ impl Processor for Noise {
     }
 }
 
-pub enum DataFormat {
-    Mono8,
-    Stereo8,
-    Mono16,
-    Stereo16,
-    // MonoAdpcm,
-    // StereoAdpcm,
+pub enum AudioFileError {
+    TooShort,
+    BadMagicNumber,
+    BadSampleRate,
 }
-
 /// Play audio from a reader (audio file).
 pub struct Reader<R: embedded_io::Read> {
-    format: DataFormat,
-    sample_rate: u16,
     reader: R,
+    sample_rate: u16,
+    is16: bool,
+    stereo: bool,
+    adpcm: bool,
 }
 
 impl<R: embedded_io::Read> Reader<R> {
-    #[must_use]
-    pub fn new(format: DataFormat, sample_rate: u16, reader: R) -> Self {
-        Self {
-            format,
-            sample_rate,
-            reader,
+    /// Create file reader source from a file in the Firefly Zero format.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file header is invalid.
+    pub fn from_file(mut reader: R) -> Result<Self, AudioFileError> {
+        let mut header = [0u8; 4];
+        let res = reader.read_exact(&mut header);
+        if res.is_err() {
+            return Err(AudioFileError::TooShort);
         }
+        if header[0] != 0x31 {
+            return Err(AudioFileError::BadMagicNumber);
+        }
+        let sample_rate = u16::from_le_bytes([header[1], header[2]]);
+        if sample_rate != 44100 {
+            return Err(AudioFileError::BadSampleRate);
+        }
+        Ok(Self {
+            reader,
+            sample_rate,
+            stereo: header[3] & 0b_100 != 0,
+            is16: header[3] & 0b_010 != 0,
+            adpcm: header[3] & 0b_001 != 0,
+        })
     }
 }
 
 impl<R: embedded_io::Read> Processor for Reader<R> {
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
-        let f = match self.format {
-            DataFormat::Mono8 => {
+        let f = match (self.is16, self.stereo) {
+            // 8 bit mono
+            (false, false) => {
                 let mut buf = [0u8; 8];
                 self.reader.read_exact(&mut buf).ok()?;
                 let s = Sample::new(u8s_to_f32s(buf));
                 Frame::mono(s)
             }
-            DataFormat::Stereo8 => {
+            // 8 bit stereo
+            (false, true) => {
                 let mut buf = [0u8; 16];
                 self.reader.read_exact(&mut buf).ok()?;
                 let left = Sample::new(u8s_to_f32s_left(buf));
                 let right = Sample::new(u8s_to_f32s_right(buf));
                 Frame::stereo(left, right)
             }
-            DataFormat::Mono16 => {
+            // 16 bit mono
+            (true, false) => {
                 let mut buf = [0u8; 16];
                 self.reader.read_exact(&mut buf).ok()?;
                 let s = Sample::new(u16s_to_f32s(buf));
                 Frame::mono(s)
             }
-            DataFormat::Stereo16 => {
+            // 16 bit stereo
+            (true, true) => {
                 let mut buf = [0u8; 32];
                 self.reader.read_exact(&mut buf).ok()?;
                 let left = Sample::new(u16s_to_f32s_left(buf));
