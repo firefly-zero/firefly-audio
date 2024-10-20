@@ -1,13 +1,24 @@
 use crate::*;
 use alloc::vec::Vec;
+use core::fmt::Display;
 
 pub enum PcmError {
     TooShort,
     BadMagicNumber,
-    BadSampleRate,
+    BadSampleRate(u16),
 }
 
-/// Play audio from a reader (audio file).
+impl Display for PcmError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            PcmError::TooShort => write!(f, "file is too short"),
+            PcmError::BadMagicNumber => write!(f, "bad magic number"),
+            PcmError::BadSampleRate(sr) => write!(f, "bad sample rate: expected 44100, got {sr}"),
+        }
+    }
+}
+
+/// Play audio from a pulse-code modulated audio file.
 pub struct Pcm<R: embedded_io::Read> {
     reader: R,
     sample_rate: u16,
@@ -17,7 +28,7 @@ pub struct Pcm<R: embedded_io::Read> {
 }
 
 impl<R: embedded_io::Read> Pcm<R> {
-    /// Create file reader source from a file in the Firefly Zero format.
+    /// Create the source from a file in the Firefly Zero format.
     ///
     /// # Errors
     ///
@@ -31,16 +42,16 @@ impl<R: embedded_io::Read> Pcm<R> {
         if header[0] != 0x31 {
             return Err(PcmError::BadMagicNumber);
         }
-        let sample_rate = u16::from_le_bytes([header[1], header[2]]);
+        let sample_rate = u16::from_le_bytes([header[2], header[3]]);
         if sample_rate != 44100 {
-            return Err(PcmError::BadSampleRate);
+            return Err(PcmError::BadSampleRate(sample_rate));
         }
         Ok(Self {
             reader,
             sample_rate,
-            stereo: header[3] & 0b_100 != 0,
-            is16: header[3] & 0b_010 != 0,
-            adpcm: header[3] & 0b_001 != 0,
+            stereo: header[1] & 0b_100 != 0,
+            is16: header[1] & 0b_010 != 0,
+            adpcm: header[1] & 0b_001 != 0,
         })
     }
 }
