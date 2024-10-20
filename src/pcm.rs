@@ -1,13 +1,14 @@
 use crate::*;
 use alloc::vec::Vec;
 
-pub enum AudioFileError {
+pub enum PcmError {
     TooShort,
     BadMagicNumber,
     BadSampleRate,
 }
+
 /// Play audio from a reader (audio file).
-pub struct Reader<R: embedded_io::Read> {
+pub struct Pcm<R: embedded_io::Read> {
     reader: R,
     sample_rate: u16,
     is16: bool,
@@ -15,24 +16,24 @@ pub struct Reader<R: embedded_io::Read> {
     adpcm: bool,
 }
 
-impl<R: embedded_io::Read> Reader<R> {
+impl<R: embedded_io::Read> Pcm<R> {
     /// Create file reader source from a file in the Firefly Zero format.
     ///
     /// # Errors
     ///
     /// Returns an error if the file header is invalid.
-    pub fn from_file(mut reader: R) -> Result<Self, AudioFileError> {
+    pub fn from_file(mut reader: R) -> Result<Self, PcmError> {
         let mut header = [0u8; 4];
         let res = reader.read_exact(&mut header);
         if res.is_err() {
-            return Err(AudioFileError::TooShort);
+            return Err(PcmError::TooShort);
         }
         if header[0] != 0x31 {
-            return Err(AudioFileError::BadMagicNumber);
+            return Err(PcmError::BadMagicNumber);
         }
         let sample_rate = u16::from_le_bytes([header[1], header[2]]);
         if sample_rate != 44100 {
-            return Err(AudioFileError::BadSampleRate);
+            return Err(PcmError::BadSampleRate);
         }
         Ok(Self {
             reader,
@@ -44,7 +45,7 @@ impl<R: embedded_io::Read> Reader<R> {
     }
 }
 
-impl<R: embedded_io::Read> Processor for Reader<R> {
+impl<R: embedded_io::Read> Processor for Pcm<R> {
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let f = match (self.is16, self.stereo) {
             // 8 bit mono

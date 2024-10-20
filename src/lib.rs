@@ -15,16 +15,16 @@ mod error;
 mod manager;
 pub mod modulators;
 mod node;
+mod pcm;
 mod processor;
 mod processors;
-mod reader;
 mod sources;
 
 pub use basic_types::*;
 pub use error::*;
 pub use manager::*;
 pub use node::*;
+pub use pcm::*;
 pub use processor::*;
 pub use processors::*;
-pub use reader::*;
 pub use sources::*;
