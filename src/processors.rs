@@ -6,7 +6,7 @@ pub struct Mix {}
 
 impl Mix {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -18,7 +18,7 @@ pub struct AllForOne {}
 
 impl AllForOne {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -44,7 +44,7 @@ pub struct Gain {
 
 impl Gain {
     #[must_use]
-    pub fn new(lvl: f32) -> Self {
+    pub const fn new(lvl: f32) -> Self {
         Self { lvl }
     }
 }
@@ -69,7 +69,7 @@ pub struct Loop {}
 
 impl Loop {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -96,7 +96,7 @@ pub struct Concat {}
 impl Concat {
     // TODO: support fade-in/fade-out
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -157,7 +157,7 @@ pub struct Mute {
 
 impl Mute {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { muted: false }
     }
 
@@ -196,7 +196,7 @@ pub struct Pause {
 
 impl Pause {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { paused: false }
     }
 
@@ -235,7 +235,7 @@ pub struct TrackPosition {
 
 impl TrackPosition {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { elapsed: 0 }
     }
 }
@@ -327,7 +327,7 @@ impl Processor for LowHighPass {
     }
 
     fn set(&mut self, param: u8, val: f32) {
-        #[allow(clippy::float_cmp)]
+        #[expect(clippy::float_cmp)]
         if param == 0 && val != self.freq {
             self.freq = val;
             self.update_coefs();
@@ -356,7 +356,7 @@ pub struct TakeLeft {}
 
 impl TakeLeft {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -377,7 +377,7 @@ pub struct TakeRight {}
 
 impl TakeRight {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -400,7 +400,7 @@ pub struct Swap {}
 
 impl Swap {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
@@ -415,7 +415,7 @@ impl Processor for Swap {
     }
 }
 
-// Clamp the amplitude onto the given interval
+/// Clamp the amplitude onto the given interval
 pub struct Clip {
     low: f32,
     high: f32,
@@ -423,7 +423,7 @@ pub struct Clip {
 
 impl Clip {
     #[must_use]
-    pub fn new(low: f32, high: f32) -> Self {
+    pub const fn new(low: f32, high: f32) -> Self {
         Self { low, high }
     }
 }
