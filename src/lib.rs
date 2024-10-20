@@ -1,12 +1,17 @@
 #![cfg_attr(not(test), no_std)]
 #![forbid(unsafe_code)]
-#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
+#![deny(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::allow_attributes
+)]
 #![allow(clippy::wildcard_imports)]
-// TODO: fix casting warning
 #![expect(
+    // TODO: fix casting warning
     clippy::cast_precision_loss,
     clippy::module_name_repetitions,
-    clippy::new_without_default
+    clippy::new_without_default,
 )]
 extern crate alloc;
 

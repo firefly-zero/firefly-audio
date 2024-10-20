@@ -327,7 +327,7 @@ impl Processor for LowHighPass {
     }
 
     fn set(&mut self, param: u8, val: f32) {
-        #[allow(clippy::float_cmp)]
+        #[expect(clippy::float_cmp)]
         if param == 0 && val != self.freq {
             self.freq = val;
             self.update_coefs();

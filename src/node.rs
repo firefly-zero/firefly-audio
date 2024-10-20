@@ -28,11 +28,11 @@ impl Node {
     }
 
     /// Add a child node.
-    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn add(&mut self, proc: Box<dyn Processor>) -> Result<u8, NodeError> {
         if self.children.len() >= 4 {
             return Err(NodeError::TooManyChildren);
         }
+        #[expect(clippy::cast_possible_truncation)]
         let child_id = self.children.len() as u8;
         let child = Self {
             children: Vec::new(),
