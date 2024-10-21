@@ -175,10 +175,10 @@ fn i16s_to_f32s_right(us: [u8; 32]) -> [f32; 8] {
 fn i8_to_f32(u: u8) -> f32 {
     #[expect(clippy::cast_possible_wrap)]
     let i = u as i8;
-    f32::from(i) * 2. / f32::from(u8::MAX) - 1.
+    f32::from(i) / f32::from(i8::MAX)
 }
 
 fn i16_to_f32(l: u8, r: u8) -> f32 {
     let i = i16::from_le_bytes([l, r]);
-    f32::from(i) * 2. / f32::from(u16::MAX) - 1.
+    f32::from(i) / f32::from(i16::MAX)
 }
