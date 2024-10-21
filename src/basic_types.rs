@@ -61,3 +61,41 @@ impl Div<f32> for FrameF {
         Self { left, right }
     }
 }
+
+#[derive(Clone)]
+pub struct FrameI {
+    pub left: SampleI,
+    pub right: Option<SampleI>,
+}
+
+impl FrameI {
+    #[must_use]
+    pub const fn mono(s: SampleI) -> Self {
+        Self {
+            left: s,
+            right: None,
+        }
+    }
+
+    #[must_use]
+    pub const fn stereo(l: SampleI, r: SampleI) -> Self {
+        Self {
+            left: l,
+            right: Some(r),
+        }
+    }
+}
+
+impl Add<&Self> for FrameI {
+    type Output = Self;
+
+    fn add(self, rhs: &Self) -> Self {
+        let left = self.left + rhs.left;
+        let right = match (self.right, rhs.right) {
+            (None, None) => None,
+            (None, Some(r)) | (Some(r), None) => Some(r),
+            (Some(a), Some(b)) => Some(a + b),
+        };
+        Self { left, right }
+    }
+}

@@ -4,6 +4,8 @@ use alloc::vec::Vec;
 pub type Nodes = Vec<Node>;
 
 pub trait Processor {
+    // TODO: seek
+
     fn set(&mut self, _param: u8, _val: f32) {
         // do nothing
     }
@@ -14,8 +16,6 @@ pub trait Processor {
 }
 
 pub trait ProcessorF: Processor {
-    // TODO: seek
-
     fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = FrameF::zero();
         let mut count = 0;
@@ -46,6 +46,24 @@ pub trait ProcessorF: Processor {
     }
 
     fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
+        Some(s)
+    }
+}
+
+pub trait ProcessorI: Processor {
+    fn process_frame_i(&mut self, f: FrameI) -> Option<FrameI> {
+        let left = self.process_sample_i(f.left)?;
+        let right = match f.right {
+            Some(right) => {
+                let right = self.process_sample_i(right)?;
+                Some(right)
+            }
+            None => None,
+        };
+        Some(FrameI { left, right })
+    }
+
+    fn process_sample_i(&mut self, s: SampleI) -> Option<SampleI> {
         Some(s)
     }
 }
