@@ -4,24 +4,25 @@ pub type Position = u32;
 pub const SAMPLE_RATE: Position = 44_100;
 pub const SAMPLE_DURATION: f32 = 1.0 / SAMPLE_RATE as f32;
 
-pub type Sample = wide::f32x8;
+pub type SampleF = wide::f32x8;
+pub type SampleI = wide::i16x8;
 
 #[derive(Clone)]
-pub struct Frame {
-    pub left: Sample,
-    pub right: Option<Sample>,
+pub struct FrameF {
+    pub left: SampleF,
+    pub right: Option<SampleF>,
 }
 
-impl Frame {
+impl FrameF {
     pub(crate) const fn zero() -> Self {
         Self {
-            left: Sample::ZERO,
+            left: SampleF::ZERO,
             right: None,
         }
     }
 
     #[must_use]
-    pub const fn mono(s: Sample) -> Self {
+    pub const fn mono(s: SampleF) -> Self {
         Self {
             left: s,
             right: None,
@@ -29,7 +30,7 @@ impl Frame {
     }
 
     #[must_use]
-    pub const fn stereo(l: Sample, r: Sample) -> Self {
+    pub const fn stereo(l: SampleF, r: SampleF) -> Self {
         Self {
             left: l,
             right: Some(r),
@@ -37,7 +38,7 @@ impl Frame {
     }
 }
 
-impl Add<&Self> for Frame {
+impl Add<&Self> for FrameF {
     type Output = Self;
 
     fn add(self, rhs: &Self) -> Self {
@@ -51,7 +52,7 @@ impl Add<&Self> for Frame {
     }
 }
 
-impl Div<f32> for Frame {
+impl Div<f32> for FrameF {
     type Output = Self;
 
     fn div(self, rhs: f32) -> Self::Output {

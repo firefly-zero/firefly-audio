@@ -16,7 +16,7 @@ impl Empty {
 }
 
 impl Processor for Empty {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         None
     }
 }
@@ -32,8 +32,8 @@ impl Zero {
 }
 
 impl Processor for Zero {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
-        Some(Frame::zero())
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+        Some(FrameF::zero())
     }
 }
 
@@ -66,7 +66,7 @@ impl Processor for Sine {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut element = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut element {
@@ -74,10 +74,10 @@ impl Processor for Sine {
             phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
-        let element = Sample::new(element);
-        let s = element * Sample::TAU;
+        let element = SampleF::new(element);
+        let s = element * SampleF::TAU;
         let s = s.sin();
-        Some(Frame::mono(s))
+        Some(FrameF::mono(s))
     }
 }
 
@@ -110,7 +110,7 @@ impl Processor for Square {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -119,8 +119,8 @@ impl Processor for Square {
             phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
-        let s = Sample::new(samples);
-        Some(Frame::mono(s))
+        let s = SampleF::new(samples);
+        Some(FrameF::mono(s))
     }
 }
 
@@ -153,7 +153,7 @@ impl Processor for Sawtooth {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -161,9 +161,9 @@ impl Processor for Sawtooth {
             phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
-        let s = Sample::new(samples);
+        let s = SampleF::new(samples);
         let s = s * 2. - 1.;
-        Some(Frame::mono(s))
+        Some(FrameF::mono(s))
     }
 }
 
@@ -196,7 +196,7 @@ impl Processor for Triangle {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -204,9 +204,9 @@ impl Processor for Triangle {
             phase = F32Ext::fract(phase + self.step);
         }
         self.phase = phase;
-        let s = Sample::new(samples);
+        let s = SampleF::new(samples);
         let s = (s * 4. - 2.).abs() - 1.;
-        Some(Frame::mono(s))
+        Some(FrameF::mono(s))
     }
 }
 
@@ -234,7 +234,7 @@ impl Noise {
 }
 
 impl Processor for Noise {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         // xorshift RNG algorithm
         // TODO: spectogram shows that it might be not uniformly distributed.
         let mut x = self.prev;
@@ -242,9 +242,9 @@ impl Processor for Noise {
         x ^= x >> 17;
         x ^= x << 5;
         self.prev = x;
-        let s = Sample::from_i32x8(x);
+        let s = SampleF::from_i32x8(x);
         let s = s / i32::MAX as f32;
-        Some(Frame::mono(s))
+        Some(FrameF::mono(s))
     }
 }
 

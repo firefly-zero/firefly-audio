@@ -57,37 +57,37 @@ impl<R: embedded_io::Read> Pcm<R> {
 }
 
 impl<R: embedded_io::Read> Processor for Pcm<R> {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let f = match (self.is16, self.stereo) {
             // 8 bit mono
             (false, false) => {
                 let mut buf = [0u8; 8];
                 self.reader.read_exact(&mut buf).ok()?;
-                let s = Sample::new(i8s_to_f32s(buf));
-                Frame::mono(s)
+                let s = SampleF::new(i8s_to_f32s(buf));
+                FrameF::mono(s)
             }
             // 8 bit stereo
             (false, true) => {
                 let mut buf = [0u8; 16];
                 self.reader.read_exact(&mut buf).ok()?;
-                let left = Sample::new(i8s_to_f32s_left(buf));
-                let right = Sample::new(i8s_to_f32s_right(buf));
-                Frame::stereo(left, right)
+                let left = SampleF::new(i8s_to_f32s_left(buf));
+                let right = SampleF::new(i8s_to_f32s_right(buf));
+                FrameF::stereo(left, right)
             }
             // 16 bit mono
             (true, false) => {
                 let mut buf = [0u8; 16];
                 self.reader.read_exact(&mut buf).ok()?;
-                let s = Sample::new(i16s_to_f32s(buf));
-                Frame::mono(s)
+                let s = SampleF::new(i16s_to_f32s(buf));
+                FrameF::mono(s)
             }
             // 16 bit stereo
             (true, true) => {
                 let mut buf = [0u8; 32];
                 self.reader.read_exact(&mut buf).ok()?;
-                let left = Sample::new(i16s_to_f32s_left(buf));
-                let right = Sample::new(i16s_to_f32s_right(buf));
-                Frame::stereo(left, right)
+                let left = SampleF::new(i16s_to_f32s_left(buf));
+                let right = SampleF::new(i16s_to_f32s_right(buf));
+                FrameF::stereo(left, right)
             }
         };
         Some(f)

@@ -51,7 +51,7 @@ impl Node {
         node.get_node(&path[1..])
     }
 
-    pub(crate) fn next_frame(&mut self) -> Option<Frame> {
+    pub(crate) fn next_frame(&mut self) -> Option<FrameF> {
         if let Some(modulator) = self.modulator.as_mut() {
             if modulator.time % MODULATE_EVERY == 0 {
                 let val = modulator.modulator.get(modulator.time);
@@ -59,7 +59,7 @@ impl Node {
             }
             modulator.time += 8;
         }
-        self.proc.process_children(&mut self.children)
+        self.proc.process_children_f(&mut self.children)
     }
 
     pub(crate) fn clear(&mut self) {

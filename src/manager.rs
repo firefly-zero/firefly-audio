@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 pub struct Manager {
     root: Node,
     paths: Vec<Box<[u8]>>,
-    prev: Option<Frame>,
+    prev: Option<FrameF>,
     consumed: usize,
 }
 
@@ -132,7 +132,7 @@ impl Manager {
 }
 
 /// Write the given frame (starting from skip index) into the beginning of the buffer.
-fn fill_buf(buf: &mut [i16], frame: &Frame, skip: usize) -> usize {
+fn fill_buf(buf: &mut [i16], frame: &FrameF, skip: usize) -> usize {
     // make iterators over left and right channels
     let right = frame.right.unwrap_or(frame.left);
     let mut left = frame.left.as_array_ref().iter();
@@ -168,8 +168,8 @@ mod tests {
 
     #[test]
     fn test_fill_buf_stereo() {
-        let frame = Frame::stereo(
-            Sample::new([
+        let frame = FrameF::stereo(
+            SampleF::new([
                 u2f(11),
                 u2f(13),
                 u2f(15),
@@ -179,7 +179,7 @@ mod tests {
                 u2f(23),
                 u2f(25),
             ]),
-            Sample::new([
+            SampleF::new([
                 u2f(12),
                 u2f(14),
                 u2f(16),
