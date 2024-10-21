@@ -11,10 +11,12 @@ pub trait Processor {
     fn reset(&mut self) {
         // do nothing
     }
+}
 
+pub trait ProcessorF: Processor {
     // TODO: seek
 
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = FrameF::zero();
         let mut count = 0;
         for node in cn.iter_mut() {
@@ -28,14 +30,14 @@ pub trait Processor {
             return None;
         }
         let f = sum / count as f32;
-        self.process_frame_f(f)
+        self.process_frame(f)
     }
 
-    fn process_frame_f(&mut self, f: FrameF) -> Option<FrameF> {
-        let left = self.process_sample_f(f.left)?;
+    fn process_frame(&mut self, f: FrameF) -> Option<FrameF> {
+        let left = self.process_sample(f.left)?;
         let right = match f.right {
             Some(right) => {
-                let right = self.process_sample_f(right)?;
+                let right = self.process_sample(right)?;
                 Some(right)
             }
             None => None,
@@ -43,7 +45,7 @@ pub trait Processor {
         Some(FrameF { left, right })
     }
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         Some(s)
     }
 }

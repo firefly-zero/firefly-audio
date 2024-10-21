@@ -40,7 +40,7 @@ impl Manager {
     /// If the parent node is not present, returns [`NodeError::UnknownID`].
     /// If there are too many nodes, returns [`NodeError::TooManyChildren`]
     /// or [`NodeError::TooManyNodes`].
-    pub fn add_node(&mut self, parent_id: u32, b: Box<dyn Processor>) -> Result<u32, NodeError> {
+    pub fn add_node(&mut self, parent_id: u32, b: Box<dyn ProcessorF>) -> Result<u32, NodeError> {
         const MAX_NODES: usize = 32;
         if self.paths.len() >= MAX_NODES {
             return Err(NodeError::TooManyNodes);

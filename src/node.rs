@@ -14,7 +14,7 @@ struct WiredModulator {
 
 pub struct Node {
     children: Vec<Node>,
-    proc: Box<dyn Processor>,
+    proc: Box<dyn ProcessorF>,
     modulator: Option<WiredModulator>,
 }
 
@@ -28,7 +28,7 @@ impl Node {
     }
 
     /// Add a child node.
-    pub(crate) fn add(&mut self, proc: Box<dyn Processor>) -> Result<u8, NodeError> {
+    pub(crate) fn add(&mut self, proc: Box<dyn ProcessorF>) -> Result<u8, NodeError> {
         if self.children.len() >= 4 {
             return Err(NodeError::TooManyChildren);
         }
@@ -59,7 +59,7 @@ impl Node {
             }
             modulator.time += 8;
         }
-        self.proc.process_children_f(&mut self.children)
+        self.proc.process_children(&mut self.children)
     }
 
     pub(crate) fn clear(&mut self) {

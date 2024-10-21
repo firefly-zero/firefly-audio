@@ -15,8 +15,10 @@ impl Empty {
     }
 }
 
-impl Processor for Empty {
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl Processor for Empty {}
+
+impl ProcessorF for Empty {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         None
     }
 }
@@ -31,8 +33,10 @@ impl Zero {
     }
 }
 
-impl Processor for Zero {
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl Processor for Zero {}
+
+impl ProcessorF for Zero {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         Some(FrameF::zero())
     }
 }
@@ -65,8 +69,10 @@ impl Processor for Sine {
             self.step = val * SAMPLE_DURATION;
         }
     }
+}
 
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl ProcessorF for Sine {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut element = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut element {
@@ -109,8 +115,10 @@ impl Processor for Square {
             self.step = val * SAMPLE_DURATION;
         }
     }
+}
 
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl ProcessorF for Square {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -152,8 +160,10 @@ impl Processor for Sawtooth {
             self.step = val * SAMPLE_DURATION;
         }
     }
+}
 
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl ProcessorF for Sawtooth {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -195,8 +205,10 @@ impl Processor for Triangle {
             self.step = val * SAMPLE_DURATION;
         }
     }
+}
 
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl ProcessorF for Triangle {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -233,8 +245,10 @@ impl Noise {
     }
 }
 
-impl Processor for Noise {
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl Processor for Noise {}
+
+impl ProcessorF for Noise {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         // xorshift RNG algorithm
         // TODO: spectogram shows that it might be not uniformly distributed.
         let mut x = self.prev;

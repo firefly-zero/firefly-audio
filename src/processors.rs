@@ -12,6 +12,7 @@ impl Mix {
 }
 
 impl Processor for Mix {}
+impl ProcessorF for Mix {}
 
 /// Mix the inputs, stop everything if at least one input is stopped.
 pub struct AllForOne {}
@@ -23,8 +24,10 @@ impl AllForOne {
     }
 }
 
-impl Processor for AllForOne {
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl Processor for AllForOne {}
+
+impl ProcessorF for AllForOne {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = FrameF::zero();
         if cn.is_empty() {
             return None;
@@ -33,7 +36,7 @@ impl Processor for AllForOne {
             sum = sum + &node.next_frame()?;
         }
         let f = sum / cn.len() as f32;
-        self.process_frame_f(f)
+        self.process_frame(f)
     }
 }
 
@@ -55,8 +58,10 @@ impl Processor for Gain {
             self.lvl = val;
         }
     }
+}
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+impl ProcessorF for Gain {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         Some(s * self.lvl)
     }
 }
@@ -74,8 +79,10 @@ impl Loop {
     }
 }
 
-impl Processor for Loop {
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl Processor for Loop {}
+
+impl ProcessorF for Loop {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = FrameF::zero();
         for node in cn.iter_mut() {
             let f = if let Some(f) = node.next_frame() {
@@ -101,8 +108,10 @@ impl Concat {
     }
 }
 
-impl Processor for Concat {
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl Processor for Concat {}
+
+impl ProcessorF for Concat {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         for node in cn {
             if let Some(f) = node.next_frame() {
                 return Some(f);
@@ -142,8 +151,10 @@ impl Processor for Pan {
             (self.left_weight, self.right_weight) = pan_weights(val);
         }
     }
+}
 
-    fn process_frame_f(&mut self, f: FrameF) -> Option<FrameF> {
+impl ProcessorF for Pan {
+    fn process_frame(&mut self, f: FrameF) -> Option<FrameF> {
         let left = f.left * self.left_weight;
         let right = f.right.map(|s| s * self.right_weight);
         Some(FrameF { left, right })
@@ -180,8 +191,10 @@ impl Processor for Mute {
             self.muted = val < 0.5;
         }
     }
+}
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+impl ProcessorF for Mute {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         if self.muted {
             return Some(SampleF::ZERO);
         }
@@ -219,12 +232,14 @@ impl Processor for Pause {
             self.paused = val < 0.5;
         }
     }
+}
 
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl ProcessorF for Pause {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         if self.paused {
             return None;
         }
-        Mix::new().process_children_f(cn)
+        Mix::new().process_children(cn)
     }
 }
 
@@ -244,8 +259,10 @@ impl Processor for TrackPosition {
     fn reset(&mut self) {
         self.elapsed = 0;
     }
+}
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+impl ProcessorF for TrackPosition {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         self.elapsed += 1;
         Some(s)
     }
@@ -333,8 +350,10 @@ impl Processor for LowHighPass {
             self.update_coefs();
         }
     }
+}
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+impl ProcessorF for LowHighPass {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         let bx0 = self.b0 * s;
         let bx1 = self.b1 * self.x_n1;
         let bx2 = self.b2 * self.x_n2;
@@ -361,8 +380,10 @@ impl TakeLeft {
     }
 }
 
-impl Processor for TakeLeft {
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl Processor for TakeLeft {}
+
+impl ProcessorF for TakeLeft {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = SampleF::ZERO;
         for node in cn.iter_mut() {
             sum += &node.next_frame()?.left;
@@ -382,8 +403,10 @@ impl TakeRight {
     }
 }
 
-impl Processor for TakeRight {
-    fn process_children_f(&mut self, cn: &mut Nodes) -> Option<FrameF> {
+impl Processor for TakeRight {}
+
+impl ProcessorF for TakeRight {
+    fn process_children(&mut self, cn: &mut Nodes) -> Option<FrameF> {
         let mut sum = SampleF::ZERO;
         for node in cn.iter_mut() {
             if let Some(right) = &node.next_frame()?.right {
@@ -405,8 +428,10 @@ impl Swap {
     }
 }
 
-impl Processor for Swap {
-    fn process_frame_f(&mut self, f: FrameF) -> Option<FrameF> {
+impl Processor for Swap {}
+
+impl ProcessorF for Swap {
+    fn process_frame(&mut self, f: FrameF) -> Option<FrameF> {
         if let Some(right) = f.right {
             Some(FrameF::stereo(right, f.left))
         } else {
@@ -440,8 +465,10 @@ impl Processor for Clip {
             self.high = val;
         }
     }
+}
 
-    fn process_sample_f(&mut self, s: SampleF) -> Option<SampleF> {
+impl ProcessorF for Clip {
+    fn process_sample(&mut self, s: SampleF) -> Option<SampleF> {
         let s = s.fast_max(self.low.into());
         let s = s.fast_min(self.high.into());
         Some(s)

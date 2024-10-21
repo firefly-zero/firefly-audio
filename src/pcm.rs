@@ -56,8 +56,10 @@ impl<R: embedded_io::Read> Pcm<R> {
     }
 }
 
-impl<R: embedded_io::Read> Processor for Pcm<R> {
-    fn process_children_f(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
+impl<R: embedded_io::Read> Processor for Pcm<R> {}
+
+impl<R: embedded_io::Read> ProcessorF for Pcm<R> {
+    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<FrameF> {
         let f = match (self.is16, self.stereo) {
             // 8 bit mono
             (false, false) => {
