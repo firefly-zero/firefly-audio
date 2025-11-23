@@ -217,7 +217,7 @@ pub struct Noise {
 
 impl Noise {
     #[must_use]
-    pub fn new(seed: i32) -> Self {
+    pub const fn new(seed: i32) -> Self {
         Self {
             prev: wide::i32x8::new([
                 seed,

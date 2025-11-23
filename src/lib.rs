@@ -10,7 +10,6 @@
 #![expect(
     // TODO: fix casting warning
     clippy::cast_precision_loss,
-    clippy::module_name_repetitions,
     clippy::new_without_default,
 )]
 extern crate alloc;

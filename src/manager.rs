@@ -44,7 +44,7 @@ impl Manager {
         const MAX_NODES: usize = 32;
         if self.paths.len() >= MAX_NODES {
             return Err(NodeError::TooManyNodes);
-        };
+        }
         let Some(parent_path) = self.paths.get(parent_id as usize) else {
             return Err(NodeError::UnknownID(parent_id));
         };
@@ -135,8 +135,8 @@ impl Manager {
 fn fill_buf(buf: &mut [i16], frame: &Frame, skip: usize) -> usize {
     // make iterators over left and right channels
     let right = frame.right.unwrap_or(frame.left);
-    let mut left = frame.left.as_array_ref().iter();
-    let mut right = right.as_array_ref().iter();
+    let mut left = frame.left.as_array().iter();
+    let mut right = right.as_array().iter();
 
     // skip the given number of samples
     let mut even = true;
