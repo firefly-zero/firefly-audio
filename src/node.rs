@@ -13,7 +13,7 @@ struct WiredModulator {
 }
 
 pub struct Node {
-    children: Vec<Node>,
+    children: Vec<Self>,
     proc: Box<dyn Processor>,
     modulator: Option<WiredModulator>,
 }

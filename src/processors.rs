@@ -161,11 +161,11 @@ impl Mute {
         Self { muted: false }
     }
 
-    pub fn mute(&mut self) {
+    pub const fn mute(&mut self) {
         self.muted = true;
     }
 
-    pub fn unmute(&mut self) {
+    pub const fn unmute(&mut self) {
         self.muted = false;
     }
 }
@@ -200,11 +200,11 @@ impl Pause {
         Self { paused: false }
     }
 
-    pub fn pause(&mut self) {
+    pub const fn pause(&mut self) {
         self.paused = true;
     }
 
-    pub fn play(&mut self) {
+    pub const fn play(&mut self) {
         self.paused = false;
     }
 }
@@ -302,7 +302,7 @@ impl LowHighPass {
             self.a1 = a1 / a0;
             self.a2 = a2 / a0;
         } else {
-            let b0 = (1. + cos_w0) / 2.;
+            let b0 = f32::midpoint(1., cos_w0);
             let b1 = -1. - cos_w0;
             let b2 = b0;
             let a0 = 1. + alpha;
