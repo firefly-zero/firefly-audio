@@ -140,6 +140,50 @@ impl Modulator for Pulse {
     }
 }
 
+/// Triangle wave low-frequency oscillator.
+///
+/// The period of up and down cycle can be configured independently
+/// allowing for assymetric wave. With both equal, it is the classic [triangle wave].
+/// With the down period zero, it is a [sawtooth wave].
+///
+/// [triangle wave]: https://en.wikipedia.org/wiki/Triangle_wave
+/// [sawtooth wave]: https://en.wikipedia.org/wiki/Sawtooth_wave
+pub struct Triangle {
+    t1: u32,
+    t2: u32,
+}
+
+impl Triangle {
+    #[must_use]
+    pub const fn new(t1: u32, t2: u32) -> Self {
+        Self { t1, t2 }
+    }
+
+    #[must_use]
+    pub const fn new_symmetric(period: u32) -> Self {
+        Self {
+            t1: period / 2,
+            t2: period / 2,
+        }
+    }
+
+    #[must_use]
+    pub const fn new_sawtooth(period: u32) -> Self {
+        Self { t1: period, t2: 0 }
+    }
+}
+
+impl Modulator for Triangle {
+    fn get(&self, now: u32) -> f32 {
+        let step = now % (self.t1 + self.t2);
+        if step < self.t1 {
+            step as f32 / self.t1 as f32
+        } else {
+            1. - (step - self.t1) as f32 / self.t2 as f32
+        }
+    }
+}
+
 /// Attack-decay-sustain-release ([ADSR]) envelope.
 ///
 /// The output:
@@ -274,6 +318,16 @@ mod tests {
 
         assert_eq!(lfo.get(15), 1.);
         assert_eq!(lfo.get(16), 1.);
+    }
+
+    #[test]
+    fn triangle() {
+        let lfo = Triangle::new(5, 5);
+        assert_eq!(lfo.get(0), 0.);
+        assert_eq!(lfo.get(3), 0.6);
+        assert_eq!(lfo.get(5), 1.);
+        assert_eq!(lfo.get(7), 0.6);
+        assert_eq!(lfo.get(10), 0.);
     }
 
     #[test]
