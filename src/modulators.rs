@@ -107,6 +107,59 @@ impl Modulator for Sine {
     }
 }
 
+/// Attack-decay-sustain-release ([ADSR]) envelope.
+///
+/// The output:
+///
+/// 1. jumps from 0 to 1 during `attack`,
+/// 2. then goes to `attack_level` during `decay`,
+/// 3. holds it for `sustain`,
+/// 4. and goes back to 0 during `release`.
+///
+/// [ADSR]: https://en.wikipedia.org/wiki/Envelope_(music)#ADSR
+pub struct ADSR {
+    attack: u32,
+    decay: u32,
+    sustain: u32,
+    sustain_level: f32,
+    release: u32,
+}
+
+impl ADSR {
+    #[must_use]
+    pub const fn new(
+        attack: u32,
+        decay: u32,
+        sustain: u32,
+        sustain_level: f32,
+        release: u32,
+    ) -> Self {
+        Self {
+            attack,
+            decay,
+            sustain,
+            sustain_level,
+            release,
+        }
+    }
+}
+
+impl Modulator for ADSR {
+    fn get(&self, now: u32) -> f32 {
+        if now < self.attack {
+            now as f32 / self.attack as f32
+        } else if now < self.decay {
+            (now - self.attack) as f32 / (self.decay - self.attack) as f32
+        } else if now < self.sustain {
+            self.sustain_level
+        } else if now < self.release {
+            (now - self.sustain) as f32 / (self.release - self.sustain) as f32
+        } else {
+            0.
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::float_cmp)]
