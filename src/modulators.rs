@@ -1,7 +1,6 @@
 //! A collection of modulators.
 
 use crate::SAMPLE_DURATION;
-use core::f32;
 use micromath::F32Ext;
 
 /// An audio node parameter modulator.
@@ -44,7 +43,7 @@ impl Modulator for Hold {
     }
 }
 
-/// Linearly ramp up or cut down from one value to another on the given time interval.
+/// Linearly ramp up (or cut down) from one value to another on the given time interval.
 pub struct Linear {
     start: f32,
     end: f32,
@@ -90,9 +89,9 @@ pub struct Sine {
 }
 
 impl Sine {
-    /// TODO: make initial phase configurable.
+    // TODO: make initial phase configurable.
     #[must_use]
-    pub fn new(freq: f32, low: f32, high: f32) -> Self {
+    pub const fn new(freq: f32, low: f32, high: f32) -> Self {
         let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
         let amp = (high - low) / 2.;
         let mid = low + amp;
@@ -104,6 +103,51 @@ impl Modulator for Sine {
     fn get(&self, now: u32) -> f32 {
         let s = F32Ext::sin(self.s * now as f32);
         self.amp.mul_add(s, self.mid)
+    }
+}
+
+/// Pulse wave low-frequency oscillator.
+///
+/// Pulse wave is a slight generalization of square wave where the duty cycle
+/// (the ratio of time between pulse and the wave period) can be configured.
+pub struct Pulse {
+    v1: f32,
+    v2: f32,
+    period: u32,
+    #[expect(clippy::struct_field_names)]
+    pulse_t: u32,
+}
+
+impl Pulse {
+    #[must_use]
+    pub const fn new(v1: f32, v2: f32, v1_t: u32, v2_t: u32) -> Self {
+        Self {
+            v1,
+            v2,
+            period: v1_t + v2_t,
+            pulse_t: v1_t,
+        }
+    }
+
+    #[must_use]
+    pub const fn new_square(v1: f32, v2: f32, period: u32) -> Self {
+        Self {
+            v1,
+            v2,
+            period,
+            pulse_t: period / 2,
+        }
+    }
+}
+
+impl Modulator for Pulse {
+    fn get(&self, now: u32) -> f32 {
+        let step = now % self.period;
+        if step < self.pulse_t {
+            self.v1
+        } else {
+            self.v2
+        }
     }
 }
 
@@ -235,6 +279,26 @@ mod tests {
         assert!(lfo.get(R / 2 + 1) < 0.);
         assert_eq!(lfo.get(R * 3 / 4), -1.);
         assert_close(lfo.get(R), 0.);
+    }
+
+    #[test]
+    fn pulse() {
+        let lfo = Pulse::new(2., 4., 5, 5);
+        assert_eq!(lfo.get(0), 2.);
+        assert_eq!(lfo.get(1), 2.);
+        assert_eq!(lfo.get(4), 2.);
+
+        assert_eq!(lfo.get(5), 4.);
+        assert_eq!(lfo.get(6), 4.);
+        assert_eq!(lfo.get(9), 4.);
+
+        assert_eq!(lfo.get(10), 2.);
+        assert_eq!(lfo.get(11), 2.);
+        assert_eq!(lfo.get(12), 2.);
+        assert_eq!(lfo.get(14), 2.);
+
+        assert_eq!(lfo.get(15), 4.);
+        assert_eq!(lfo.get(16), 4.);
     }
 
     #[test]
