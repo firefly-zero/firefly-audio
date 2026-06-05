@@ -7,10 +7,16 @@ use micromath::F32Ext;
 ///
 /// Includes both [envelopes] and [LFOs].
 ///
+/// All modulators produce value between 0 and 1.
+/// The range of the modulated parameter value is adjusted via
+/// `low` and `high` args of [`Node::modulate`][crate::Node::modulate].
+///
 /// [envelopes]: https://en.wikipedia.org/wiki/Envelope_(music)
 /// [LFOs]: https://en.wikipedia.org/wiki/Low-frequency_oscillation
 pub trait Modulator {
     /// Get the modulator value at the given time (in samples).
+    ///
+    /// The value is guaranteed to be in the range from 0 to 1 (inclusive).
     ///
     /// The time usually increases. It can go down if it wraps, which happens only
     /// if the audio plays for a very long time. Or it can be intentionally reset to 0.
@@ -23,88 +29,74 @@ pub trait Modulator {
 ///
 /// For oscillating between two values, use [`Pulse`] instead.
 pub struct Hold {
-    v1: f32,
-    v2: f32,
     time: u32,
 }
 
 impl Hold {
     #[must_use]
-    pub const fn new(v1: f32, v2: f32, time: u32) -> Self {
-        Self { v1, v2, time }
+    pub const fn new(time: u32) -> Self {
+        Self { time }
     }
 }
 
 impl Modulator for Hold {
     fn get(&self, now: u32) -> f32 {
         if now < self.time {
-            self.v1
+            0.
         } else {
-            self.v2
+            1.
         }
     }
 }
 
 /// Linearly ramp up (or cut down) from one value to another on the given time interval.
 pub struct Linear {
-    start: f32,
-    end: f32,
     start_at: u32,
     end_at: u32,
 }
 
 impl Linear {
     #[must_use]
-    pub const fn new(start: f32, end: f32, start_at: u32, end_at: u32) -> Self {
-        Self {
-            start,
-            end,
-            start_at,
-            end_at,
-        }
+    pub const fn new(start_at: u32, end_at: u32) -> Self {
+        Self { start_at, end_at }
     }
 }
 
 impl Modulator for Linear {
     fn get(&self, now: u32) -> f32 {
         if now <= self.start_at {
-            return self.start;
+            return 0.;
         }
         if now >= self.end_at {
-            return self.end;
+            return 1.;
         }
         let duration = self.end_at.saturating_sub(self.start_at);
         if duration == 0 {
-            return self.end;
+            return 1.;
         }
         let elapsed = now - self.start_at;
-        let ratio = elapsed as f32 / duration as f32;
-        (self.end - self.start).mul_add(ratio, self.start)
+        elapsed as f32 / duration as f32
     }
 }
 
 /// Sine wave low-frequency oscillator.
 pub struct Sine {
     s: f32,
-    mid: f32,
-    amp: f32,
 }
 
 impl Sine {
-    // TODO: make initial phase configurable.
     #[must_use]
-    pub const fn new(freq: f32, low: f32, high: f32) -> Self {
+    pub const fn new(freq: f32) -> Self {
         let s = core::f32::consts::TAU * freq * SAMPLE_DURATION;
-        let amp = (high - low) / 2.;
-        let mid = low + amp;
-        Self { s, mid, amp }
+        Self { s }
     }
 }
 
 impl Modulator for Sine {
+    #[expect(clippy::manual_midpoint)]
     fn get(&self, now: u32) -> f32 {
         let s = F32Ext::sin(self.s * now as f32);
-        self.amp.mul_add(s, self.mid)
+        (s + 1.) / 2.
     }
 }
 
@@ -115,29 +107,22 @@ impl Modulator for Sine {
 ///
 /// For switching from one value to another only once, use [`Hold`] instead.
 pub struct Pulse {
-    v1: f32,
-    v2: f32,
     period: u32,
-    #[expect(clippy::struct_field_names)]
     pulse_t: u32,
 }
 
 impl Pulse {
     #[must_use]
-    pub const fn new(v1: f32, v2: f32, v1_t: u32, v2_t: u32) -> Self {
+    pub const fn new(v1_t: u32, v2_t: u32) -> Self {
         Self {
-            v1,
-            v2,
             period: v1_t + v2_t,
             pulse_t: v1_t,
         }
     }
 
     #[must_use]
-    pub const fn new_square(v1: f32, v2: f32, period: u32) -> Self {
+    pub const fn new_square(period: u32) -> Self {
         Self {
-            v1,
-            v2,
             period,
             pulse_t: period / 2,
         }
@@ -148,9 +133,9 @@ impl Modulator for Pulse {
     fn get(&self, now: u32) -> f32 {
         let step = now % self.period;
         if step < self.pulse_t {
-            self.v1
+            0.
         } else {
-            self.v2
+            1.
         }
     }
 }
@@ -230,81 +215,65 @@ mod tests {
 
     #[test]
     fn switch() {
-        let lfo = Hold::new(2., 4., 10);
-        assert_eq!(lfo.get(0), 2.);
-        assert_eq!(lfo.get(6), 2.);
-        assert_eq!(lfo.get(9), 2.);
+        let lfo = Hold::new(10);
+        assert_eq!(lfo.get(0), 0.);
+        assert_eq!(lfo.get(6), 0.);
+        assert_eq!(lfo.get(9), 0.);
 
-        assert_eq!(lfo.get(10), 4.);
-        assert_eq!(lfo.get(11), 4.);
-        assert_eq!(lfo.get(12), 4.);
-        assert_eq!(lfo.get(21), 4.);
-        assert_eq!(lfo.get(100), 4.);
+        assert_eq!(lfo.get(10), 1.);
+        assert_eq!(lfo.get(11), 1.);
+        assert_eq!(lfo.get(12), 1.);
+        assert_eq!(lfo.get(21), 1.);
+        assert_eq!(lfo.get(100), 1.);
     }
 
     #[test]
     fn ramp_up() {
-        let lfo = Linear::new(2., 4., 10, 20);
-        assert_eq!(lfo.get(0), 2.);
-        assert_eq!(lfo.get(8), 2.);
-        assert_eq!(lfo.get(10), 2.);
+        let lfo = Linear::new(10, 20);
+        assert_eq!(lfo.get(0), 0.);
+        assert_eq!(lfo.get(8), 0.);
+        assert_eq!(lfo.get(10), 0.);
 
-        assert_eq!(lfo.get(20), 4.);
-        assert_eq!(lfo.get(23), 4.);
-        assert_eq!(lfo.get(100), 4.);
+        assert_eq!(lfo.get(20), 1.);
+        assert_eq!(lfo.get(23), 1.);
+        assert_eq!(lfo.get(100), 1.);
 
-        assert_eq!(lfo.get(13), 2.6);
-        assert_eq!(lfo.get(15), 3.);
-        assert_eq!(lfo.get(17), 3.4);
-    }
-
-    #[test]
-    fn cut_down() {
-        let lfo = Linear::new(4., 2., 10, 20);
-        assert_eq!(lfo.get(0), 4.);
-        assert_eq!(lfo.get(8), 4.);
-        assert_eq!(lfo.get(10), 4.);
-
-        assert_eq!(lfo.get(20), 2.);
-        assert_eq!(lfo.get(23), 2.);
-        assert_eq!(lfo.get(100), 2.);
-
-        assert_eq!(lfo.get(13), 3.4);
-        assert_eq!(lfo.get(15), 3.);
-        assert_eq!(lfo.get(17), 2.6);
+        assert_eq!(lfo.get(13), 0.3);
+        assert_eq!(lfo.get(15), 0.5);
+        assert_eq!(lfo.get(17), 0.7);
     }
 
     #[test]
     fn sine() {
         const R: u32 = 44_100; // sample rate
-        let lfo = Sine::new(1., -1., 1.);
-        assert_eq!(lfo.get(0), 0.);
+        let lfo = Sine::new(1.);
+        assert_eq!(lfo.get(0), 0.5);
         assert!(lfo.get(1) > 0.);
         assert_eq!(lfo.get(R / 4), 1.);
-        assert_close(lfo.get(R / 2), 0.);
-        assert!(lfo.get(R / 2 + 1) < 0.);
-        assert_eq!(lfo.get(R * 3 / 4), -1.);
-        assert_close(lfo.get(R), 0.);
+        assert_close(lfo.get(R / 2), 0.5);
+        assert!(lfo.get(R / 2 + 1) < 0.5);
+        assert_eq!(lfo.get(R * 3 / 4), 0.);
+        assert_close(lfo.get(R), 0.5);
     }
 
     #[test]
     fn pulse() {
-        let lfo = Pulse::new(2., 4., 5, 5);
-        assert_eq!(lfo.get(0), 2.);
-        assert_eq!(lfo.get(1), 2.);
-        assert_eq!(lfo.get(4), 2.);
+        let lfo = Pulse::new(5, 5);
+        assert_eq!(lfo.get(0), 0.);
+        assert_eq!(lfo.get(1), 0.);
+        assert_eq!(lfo.get(4), 0.);
 
-        assert_eq!(lfo.get(5), 4.);
-        assert_eq!(lfo.get(6), 4.);
-        assert_eq!(lfo.get(9), 4.);
+        assert_eq!(lfo.get(5), 1.);
+        assert_eq!(lfo.get(6), 1.);
+        assert_eq!(lfo.get(9), 1.);
 
-        assert_eq!(lfo.get(10), 2.);
-        assert_eq!(lfo.get(11), 2.);
-        assert_eq!(lfo.get(12), 2.);
-        assert_eq!(lfo.get(14), 2.);
+        assert_eq!(lfo.get(10), 0.);
+        assert_eq!(lfo.get(11), 0.);
+        assert_eq!(lfo.get(12), 0.);
+        assert_eq!(lfo.get(14), 0.);
 
-        assert_eq!(lfo.get(15), 4.);
-        assert_eq!(lfo.get(16), 4.);
+        assert_eq!(lfo.get(15), 1.);
+        assert_eq!(lfo.get(16), 1.);
     }
 
     #[test]
