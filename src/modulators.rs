@@ -146,15 +146,22 @@ impl ADSR {
 
 impl Modulator for ADSR {
     fn get(&self, now: u32) -> f32 {
-        if now < self.attack {
+        if now <= self.attack {
+            // Going up to 1.
             now as f32 / self.attack as f32
-        } else if now < self.decay {
-            (now - self.attack) as f32 / (self.decay - self.attack) as f32
-        } else if now < self.sustain {
+        } else if now <= self.decay {
+            // Going down from 1 to sustain_level.
+            let ratio = (self.decay - now) as f32 / (self.decay - self.attack) as f32;
+            (1. - self.sustain_level).mul_add(ratio, self.sustain_level)
+        } else if now <= self.sustain {
+            // Keeping sustain level until release.
             self.sustain_level
-        } else if now < self.release {
-            (now - self.sustain) as f32 / (self.release - self.sustain) as f32
+        } else if now <= self.release {
+            // Going down from sustain_level to 0.
+            let ratio = (self.release - now) as f32 / (self.release - self.sustain) as f32;
+            self.sustain_level * ratio
         } else {
+            // Keeping zero forever.
             0.
         }
     }
@@ -228,5 +235,21 @@ mod tests {
         assert!(lfo.get(R / 2 + 1) < 0.);
         assert_eq!(lfo.get(R * 3 / 4), -1.);
         assert_close(lfo.get(R), 0.);
+    }
+
+    #[test]
+    fn adsr() {
+        let lfo = ADSR::new(10, 20, 30, 0.5, 40);
+        assert_eq!(lfo.get(0), 0.);
+        assert_eq!(lfo.get(5), 0.5);
+        assert_eq!(lfo.get(10), 1.);
+        assert_eq!(lfo.get(15), 0.75);
+        assert_eq!(lfo.get(20), 0.5);
+        assert_eq!(lfo.get(21), 0.5);
+        assert_eq!(lfo.get(30), 0.5);
+        assert_eq!(lfo.get(35), 0.25);
+        assert_eq!(lfo.get(40), 0.);
+        assert_eq!(lfo.get(41), 0.);
+        assert_eq!(lfo.get(50), 0.);
     }
 }
