@@ -20,6 +20,8 @@ pub trait Modulator {
 }
 
 /// Emit first value before the given moment and the second value after.
+///
+/// For oscillating between two values, use [`Pulse`] instead.
 pub struct Hold {
     v1: f32,
     v2: f32,
@@ -110,6 +112,8 @@ impl Modulator for Sine {
 ///
 /// Pulse wave is a slight generalization of square wave where the duty cycle
 /// (the ratio of time between pulse and the wave period) can be configured.
+///
+/// For switching from one value to another only once, use [`Hold`] instead.
 pub struct Pulse {
     v1: f32,
     v2: f32,
@@ -159,6 +163,8 @@ impl Modulator for Pulse {
 /// 2. then goes to `attack_level` during `decay`,
 /// 3. holds it for `sustain`,
 /// 4. and goes back to 0 during `release`.
+///
+/// An equivalent of chaining 4 [`Linear`] modulators.
 ///
 /// [ADSR]: https://en.wikipedia.org/wiki/Envelope_(music)#ADSR
 pub struct ADSR {
