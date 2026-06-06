@@ -73,20 +73,21 @@ impl Node {
         self.children.clear();
     }
 
-    /// Reset the current node processor to its initial state.
+    /// Reset the current node (processor and modulator) to the initial state.
     pub fn reset(&mut self) {
         self.proc.reset();
+        if let Some(modulator) = self.modulator.as_mut() {
+            modulator.time = 0;
+        }
     }
 
-    /// Reset the current node and all its children.
+    /// Do [`Node::reset`] on the current node and all its children (recursively).
     pub fn reset_all(&mut self) {
-        self.proc.reset();
+        self.reset();
         for node in &mut self.children {
             node.reset_all();
         }
     }
-
-    // TODO: reset modulator
 
     /// Set modulator for the given parameter.
     ///

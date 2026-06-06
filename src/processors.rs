@@ -230,7 +230,7 @@ impl Processor for Pause {
 
 /// Tracks the current position (elapsed time) of the audio stream.
 pub struct TrackPosition {
-    elapsed: Position,
+    pub elapsed: Position,
 }
 
 impl TrackPosition {
@@ -430,14 +430,15 @@ impl Clip {
 
 impl Processor for Clip {
     fn set(&mut self, param: u8, val: f32) {
-        if param == 0 {
-            let diff = self.high - self.low;
-            self.low = val;
-            self.high = val + diff;
-        } else if param == 1 {
-            self.low = val;
-        } else if param == 2 {
-            self.high = val;
+        match param {
+            0 => {
+                let diff = self.high - self.low;
+                self.low = val;
+                self.high = val + diff;
+            }
+            1 => self.low = val,
+            2 => self.high = val,
+            _ => {}
         }
     }
 
