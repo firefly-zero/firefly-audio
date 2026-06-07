@@ -2,6 +2,7 @@ use crate::modulators::Modulator;
 use crate::*;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use micromath::F32Ext;
 
 const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
 
@@ -9,6 +10,11 @@ const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
 struct WiredModulator {
     param: u8,
     modulator: Box<dyn Modulator>,
+    low: f32,
+    range: f32,
+    /// The modulator-specific timer.
+    ///
+    /// Starts at zero (when the modulator is wired).
     time: u32,
 }
 
@@ -55,6 +61,7 @@ impl Node {
         if let Some(modulator) = self.modulator.as_mut() {
             if modulator.time % MODULATE_EVERY == 0 {
                 let val = modulator.modulator.get(modulator.time);
+                let val = F32Ext::mul_add(val, modulator.range, modulator.low);
                 self.proc.set(modulator.param, val);
             }
             modulator.time += 8;
@@ -66,27 +73,38 @@ impl Node {
         self.children.clear();
     }
 
-    /// Reset the current node processor to its initial state.
+    /// Reset the current node (processor and modulator) to the initial state.
     pub fn reset(&mut self) {
         self.proc.reset();
+        if let Some(modulator) = self.modulator.as_mut() {
+            modulator.time = 0;
+        }
     }
 
-    /// Reset the current node and all its children.
+    /// Do [`Node::reset`] on the current node and all its children (recursively).
     pub fn reset_all(&mut self) {
-        self.proc.reset();
+        self.reset();
         for node in &mut self.children {
             node.reset_all();
         }
     }
 
-    // TODO: reset modulator
-
     /// Set modulator for the given parameter.
-    pub fn modulate(&mut self, param: u8, lfo: Box<dyn Modulator>) {
+    ///
+    /// The `low` is the lowest value produced by the modulator
+    /// and `high` is the highest.
+    ///
+    /// If `low` is smaller than `high`, the modulator output is inversed.
+    /// For example, modulating [`Pause`] with `low=0` and `high=1`
+    /// will make it first paused and then playing while modulating it with
+    /// `low=1` and `high=0` will first have the node playing and then paused.
+    pub fn modulate(&mut self, param: u8, lfo: Box<dyn Modulator>, low: f32, high: f32) {
         let modulator = WiredModulator {
             param,
             modulator: lfo,
             time: 0,
+            low,
+            range: high - low,
         };
         self.modulator = Some(modulator);
     }

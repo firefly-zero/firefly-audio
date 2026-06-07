@@ -1,7 +1,10 @@
 use core::ops::{Add, Div};
 
+/// A unit of time in samples.
 pub type Position = u32;
+/// The number of samples in a second.
 pub const SAMPLE_RATE: Position = 44_100;
+/// Time (in seconds) between two samples.
 pub const SAMPLE_DURATION: f32 = 1.0 / SAMPLE_RATE as f32;
 
 pub type Sample = wide::f32x8;
