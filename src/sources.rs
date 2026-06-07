@@ -2,7 +2,6 @@
 //!
 //! Includes oscillators, file readers, audio samples, etc.
 use crate::*;
-use alloc::vec::Vec;
 use micromath::F32Ext;
 
 /// A sound source that is always stopped.
@@ -16,7 +15,7 @@ impl Empty {
 }
 
 impl Processor for Empty {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         None
     }
 }
@@ -32,7 +31,7 @@ impl Zero {
 }
 
 impl Processor for Zero {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         Some(Frame::zero())
     }
 }
@@ -66,7 +65,7 @@ impl Processor for Sine {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         let mut element = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut element {
@@ -110,7 +109,7 @@ impl Processor for Square {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -153,7 +152,7 @@ impl Processor for Sawtooth {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -196,7 +195,7 @@ impl Processor for Triangle {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         let mut samples = [0f32; 8];
         let mut phase = self.phase;
         for sample in &mut samples {
@@ -234,7 +233,7 @@ impl Noise {
 }
 
 impl Processor for Noise {
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         // xorshift RNG algorithm
         // TODO: spectogram shows that it might be not uniformly distributed.
         let mut x = self.prev;

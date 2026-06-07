@@ -24,7 +24,7 @@ impl AllForOne {
 }
 
 impl Processor for AllForOne {
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Frame::zero();
         if cn.is_empty() {
             return None;
@@ -75,7 +75,7 @@ impl Loop {
 }
 
 impl Processor for Loop {
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Frame::zero();
         for node in cn.iter_mut() {
             let f = if let Some(f) = node.next_frame() {
@@ -102,7 +102,7 @@ impl Concat {
 }
 
 impl Processor for Concat {
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         for node in cn {
             if let Some(f) = node.next_frame() {
                 return Some(f);
@@ -220,7 +220,7 @@ impl Processor for Pause {
         }
     }
 
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         if self.paused {
             return None;
         }
@@ -362,7 +362,7 @@ impl TakeLeft {
 }
 
 impl Processor for TakeLeft {
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Sample::ZERO;
         for node in cn.iter_mut() {
             sum += &node.next_frame()?.left;
@@ -383,7 +383,7 @@ impl TakeRight {
 }
 
 impl Processor for TakeRight {
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Sample::ZERO;
         for node in cn.iter_mut() {
             if let Some(right) = &node.next_frame()?.right {

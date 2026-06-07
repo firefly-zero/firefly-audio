@@ -4,15 +4,24 @@ use alloc::vec::Vec;
 pub type Nodes = Vec<Node>;
 
 pub trait Processor {
+    /// Set the value of the given parameter.
     fn set(&mut self, _param: u8, _val: f32) {
         // do nothing
     }
 
+    /// Reset the processor to the initial state.
+    ///
+    /// In the current implementation, some processors
+    /// might reset parameters changed using `set`
+    /// and some processors might keep these.
+    /// This behavior might change in the future
+    /// for individual processors or all processors.
     fn reset(&mut self) {
         // do nothing
     }
 
-    fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
+    /// Get the next frame for the processor.
+    fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Frame::zero();
         let mut count = 0;
         for node in cn.iter_mut() {

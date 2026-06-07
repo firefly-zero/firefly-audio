@@ -1,5 +1,4 @@
 use crate::*;
-use alloc::vec::Vec;
 use core::fmt::Display;
 
 const HEADER_SIZE: usize = 4;
@@ -83,7 +82,7 @@ impl<R: embedded_io::Read + embedded_io::Seek> Processor for Pcm<R> {
         }
     }
 
-    fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
+    fn process_children(&mut self, _cn: &mut [Node]) -> Option<Frame> {
         let f = match (self.is16, self.stereo) {
             // 8 bit mono
             (false, false) => {
