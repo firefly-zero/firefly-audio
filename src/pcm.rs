@@ -68,13 +68,13 @@ impl<R: embedded_io::Read + embedded_io::Seek> Processor for Pcm<R> {
         if param == 0 {
             let frame_size = match (self.is16, self.stereo) {
                 // 8 bit mono
-                (false, false) => 8,
+                (false, false) => 1,
                 // 8 bit stereo
-                (false, true) => 16,
+                (false, true) => 2,
                 // 16 bit mono
-                (true, false) => 16,
+                (true, false) => 2,
                 // 16 bit stereo
-                (true, true) => 32,
+                (true, true) => 4,
             };
             #[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
             let pos = HEADER_SIZE as u64 + frame_size * val as u64;
