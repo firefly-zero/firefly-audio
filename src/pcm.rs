@@ -66,7 +66,7 @@ impl<R: embedded_io::Read + embedded_io::Seek> Processor for Pcm<R> {
     #[expect(clippy::match_same_arms)]
     fn set(&mut self, param: u8, val: f32) {
         if param == 0 {
-            let frame_size = match (self.is16, self.stereo) {
+            let sample_size = match (self.is16, self.stereo) {
                 // 8 bit mono
                 (false, false) => 1,
                 // 8 bit stereo
@@ -77,7 +77,7 @@ impl<R: embedded_io::Read + embedded_io::Seek> Processor for Pcm<R> {
                 (true, true) => 4,
             };
             #[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let pos = HEADER_SIZE as u64 + frame_size * val as u64;
+            let pos = HEADER_SIZE as u64 + sample_size * val as u64;
             let pos = embedded_io::SeekFrom::Start(pos);
             _ = self.reader.seek(pos);
         }
