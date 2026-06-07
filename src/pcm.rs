@@ -2,6 +2,8 @@ use crate::*;
 use alloc::vec::Vec;
 use core::fmt::Display;
 
+const HEADER_SIZE: usize = 4;
+
 pub enum PcmError {
     TooShort,
     BadMagicNumber,
@@ -19,7 +21,7 @@ impl Display for PcmError {
 }
 
 /// Play audio from a pulse-code modulated audio file.
-pub struct Pcm<R: embedded_io::Read> {
+pub struct Pcm<R: embedded_io::Read + embedded_io::Seek> {
     reader: R,
     _sample_rate: u16,
     is16: bool,
@@ -27,14 +29,14 @@ pub struct Pcm<R: embedded_io::Read> {
     _adpcm: bool,
 }
 
-impl<R: embedded_io::Read> Pcm<R> {
+impl<R: embedded_io::Read + embedded_io::Seek> Pcm<R> {
     /// Create the source from a file in the Firefly Zero format.
     ///
     /// # Errors
     ///
     /// Returns an error if the file header is invalid.
     pub fn from_file(mut reader: R) -> Result<Self, PcmError> {
-        let mut header = [0u8; 4];
+        let mut header = [0u8; HEADER_SIZE];
         let res = reader.read_exact(&mut header);
         if res.is_err() {
             return Err(PcmError::TooShort);
@@ -56,7 +58,31 @@ impl<R: embedded_io::Read> Pcm<R> {
     }
 }
 
-impl<R: embedded_io::Read> Processor for Pcm<R> {
+impl<R: embedded_io::Read + embedded_io::Seek> Processor for Pcm<R> {
+    fn reset(&mut self) {
+        _ = self.reader.seek(embedded_io::SeekFrom::Start(4));
+    }
+
+    #[expect(clippy::match_same_arms)]
+    fn set(&mut self, param: u8, val: f32) {
+        if param == 0 {
+            let frame_size = match (self.is16, self.stereo) {
+                // 8 bit mono
+                (false, false) => 8,
+                // 8 bit stereo
+                (false, true) => 16,
+                // 16 bit mono
+                (true, false) => 16,
+                // 16 bit stereo
+                (true, true) => 32,
+            };
+            #[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let pos = HEADER_SIZE as u64 + frame_size * val as u64;
+            let pos = embedded_io::SeekFrom::Start(pos);
+            _ = self.reader.seek(pos);
+        }
+    }
+
     fn process_children(&mut self, _cn: &mut Vec<Node>) -> Option<Frame> {
         let f = match (self.is16, self.stereo) {
             // 8 bit mono

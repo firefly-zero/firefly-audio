@@ -12,8 +12,6 @@ pub trait Processor {
         // do nothing
     }
 
-    // TODO: seek
-
     fn process_children(&mut self, cn: &mut Nodes) -> Option<Frame> {
         let mut sum = Frame::zero();
         let mut count = 0;
