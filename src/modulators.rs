@@ -196,7 +196,7 @@ impl Modulator for Triangle {
 /// An equivalent of chaining 4 [`Linear`] modulators.
 ///
 /// [ADSR]: https://en.wikipedia.org/wiki/Envelope_(music)#ADSR
-pub struct ADSR {
+pub struct Adsr {
     attack: u32,
     decay: u32,
     sustain: u32,
@@ -204,7 +204,7 @@ pub struct ADSR {
     release: u32,
 }
 
-impl ADSR {
+impl Adsr {
     #[must_use]
     pub const fn new(
         attack: u32,
@@ -223,7 +223,7 @@ impl ADSR {
     }
 }
 
-impl Modulator for ADSR {
+impl Modulator for Adsr {
     fn get(&self, now: u32) -> f32 {
         if now <= self.attack {
             // Going up to 1.
@@ -332,7 +332,7 @@ mod tests {
 
     #[test]
     fn adsr() {
-        let lfo = ADSR::new(10, 20, 30, 0.5, 40);
+        let lfo = Adsr::new(10, 20, 30, 0.5, 40);
         assert_eq!(lfo.get(0), 0.);
         assert_eq!(lfo.get(5), 0.5);
         assert_eq!(lfo.get(10), 1.);
