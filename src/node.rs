@@ -85,6 +85,22 @@ impl Node {
         }
     }
 
+    /// Set the value of a parameter.
+    ///
+    /// The parameter IDs and values are the same as in [`Node::modulate`].
+    ///
+    /// **USE WITH CAUTION:** Parameters set this way may or may not be reset
+    /// when calling [`Node::reset`]. If the node has a modulator set for
+    /// the same parameter, the modulator is removed.
+    pub fn set(&mut self, param: u8, val: f32) {
+        if let Some(modulator) = &self.modulator {
+            if modulator.param == param {
+                self.modulator = None;
+            }
+        }
+        self.proc.set(param, val);
+    }
+
     /// Set modulator for the given parameter.
     ///
     /// The `low` is the lowest value produced by the modulator

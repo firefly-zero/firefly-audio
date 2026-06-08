@@ -11,9 +11,11 @@ pub trait Processor {
 
     /// Reset the processor to the initial state.
     ///
-    /// This might or might not affect params changed using `set`.
-    /// This is doesn't matter since params are `set` by a modulator
+    /// This might or might not affect params changed using [`Processor::set`].
+    /// This is doesn't matter since params are usually `set` by a modulator
     /// and when the processor is reset, the modulator is also reset.
+    /// They can also be changed using [`Node::set`] and the method
+    /// has a warning about this behavior.
     fn reset(&mut self) {
         // do nothing
     }
