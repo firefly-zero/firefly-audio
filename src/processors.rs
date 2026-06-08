@@ -30,7 +30,7 @@ impl Processor for AllForOne {
             return None;
         }
         for node in cn.iter_mut() {
-            sum = sum + &node.next_frame()?;
+            sum = sum + node.next_frame()?;
         }
         let f = sum / cn.len() as f32;
         self.process_frame(f)
@@ -84,7 +84,7 @@ impl Processor for Loop {
                 node.reset();
                 node.next_frame()?
             };
-            sum = sum + &f;
+            sum = sum + f;
         }
         Some(sum / cn.len() as f32)
     }
