@@ -14,4 +14,4 @@ categories = ["multimedia::audio", "game-development", "no-std", "wasm"]
 [dependencies]
 embedded-io = "0.6.1"
 micromath = "2.1.0"
-wide = { version = "1.4.0", default-features = false }
+wide = { version = "1.5.0", default-features = false }
