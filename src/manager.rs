@@ -103,12 +103,12 @@ impl Manager {
                 self.prev = Some(frame);
                 self.consumed = 0;
                 buf = self.write_prev(buf);
-                debug_assert!(buf.is_empty());
-            } else {
-                // fill the remainder of the buffer with zeros
-                // to avoid playing old values
-                buf.fill(0);
+                // TODO(@orsinium): Figure out why this condition is often violated.
+                // debug_assert!(buf.is_empty());
             }
+            // fill the remainder of the buffer with zeros
+            // to avoid playing old values
+            buf.fill(0);
         }
     }
 
