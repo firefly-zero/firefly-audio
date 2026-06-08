@@ -21,19 +21,18 @@ pub trait Processor {
     /// Get the next frame for the processor.
     fn process_children(&mut self, cn: &mut [Node]) -> Option<Frame> {
         let mut sum = Frame::zero();
-        let mut count = 0;
+        let mut empty = true;
         for node in cn.iter_mut() {
             let Some(frame) = node.next_frame() else {
                 continue;
             };
-            sum = sum + &frame;
-            count += 1;
+            sum = sum + frame;
+            empty = false;
         }
-        if count == 0 {
+        if empty {
             return None;
         }
-        let f = sum / count as f32;
-        self.process_frame(f)
+        self.process_frame(sum)
     }
 
     fn process_frame(&mut self, f: Frame) -> Option<Frame> {
