@@ -1,8 +1,8 @@
 [package]
 name = "firefly-audio"
 version = "0.2.2"
-rust-version = "1.89.0"
-edition = "2021"
+rust-version = "1.95.0"
+edition = "2024"
 authors = ["Firefly Zero team"]
 description = "Tree-based generator and processor for sound. Powers audio in Firefly Zero."
 homepage = "https://fireflyzero.com/"

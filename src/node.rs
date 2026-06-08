@@ -93,10 +93,10 @@ impl Node {
     /// when calling [`Node::reset`]. If the node has a modulator set for
     /// the same parameter, the modulator is removed.
     pub fn set(&mut self, param: u8, val: f32) {
-        if let Some(modulator) = &self.modulator {
-            if modulator.param == param {
-                self.modulator = None;
-            }
+        if let Some(modulator) = &self.modulator
+            && modulator.param == param
+        {
+            self.modulator = None;
         }
         self.proc.set(param, val);
     }

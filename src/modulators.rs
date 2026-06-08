@@ -41,11 +41,7 @@ impl Hold {
 
 impl Modulator for Hold {
     fn get(&self, now: u32) -> f32 {
-        if now < self.time {
-            0.
-        } else {
-            1.
-        }
+        if now < self.time { 0. } else { 1. }
     }
 }
 
@@ -132,11 +128,7 @@ impl Pulse {
 impl Modulator for Pulse {
     fn get(&self, now: u32) -> f32 {
         let step = now % self.period;
-        if step < self.pulse_t {
-            0.
-        } else {
-            1.
-        }
+        if step < self.pulse_t { 0. } else { 1. }
     }
 }
 
