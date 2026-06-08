@@ -47,7 +47,8 @@ impl Add<&Self> for Frame {
         let left = self.left + rhs.left;
         let right = match (self.right, rhs.right) {
             (None, None) => None,
-            (None, Some(r)) | (Some(r), None) => Some(r),
+            (None, Some(r)) => Some(self.left + r),
+            (Some(r), None) => Some(r + rhs.left),
             (Some(a), Some(b)) => Some(a + b),
         };
         Self { left, right }
