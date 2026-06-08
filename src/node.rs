@@ -4,8 +4,6 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use micromath::F32Ext;
 
-const MODULATE_EVERY: u32 = SAMPLE_RATE / 60;
-
 /// A modulator connected to a parameter of a node.
 struct WiredModulator {
     param: u8,
@@ -59,12 +57,10 @@ impl Node {
 
     pub(crate) fn next_frame(&mut self) -> Option<Frame> {
         if let Some(modulator) = self.modulator.as_mut() {
-            if modulator.time % MODULATE_EVERY == 0 {
-                let val = modulator.modulator.get(modulator.time);
-                let val = F32Ext::mul_add(val, modulator.range, modulator.low);
-                self.proc.set(modulator.param, val);
-            }
-            modulator.time += 8;
+            let val = modulator.modulator.get(modulator.time * 8);
+            let val = F32Ext::mul_add(val, modulator.range, modulator.low);
+            self.proc.set(modulator.param, val);
+            modulator.time += 1;
         }
         self.proc.process_children(&mut self.children)
     }
